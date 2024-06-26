@@ -54,20 +54,20 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: update clang to clang-17 only
-      if: matrix.c_compiler == 'clang-17'
-      run: |
-        # Avoid `Conflicts: python3-lldb-x.y` between packages.
+  #  - name: update clang to clang-17 only
+  #    if: matrix.c_compiler == 'clang-17'
+   #   run: |
+       # Avoid `Conflicts: python3-lldb-x.y` between packages.
         # https://github.com/google/re2/blob/main/.github/workflows/ci.yml
-        sudo apt purge -y python3-lldb-14
-        wget https://apt.llvm.org/llvm.sh
-        chmod u+x llvm.sh
-        sudo ./llvm.sh 17
+    #    sudo apt purge -y python3-lldb-14
+     #   wget https://apt.llvm.org/llvm.sh
+      #  chmod u+x llvm.sh
+       # sudo ./llvm.sh 17
 
     - name: Run on Ubuntu only
       if: matrix.os == 'ubuntu-24.04'
       run: |
-        sudo apt install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+        # sudo apt install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
         sudo apt install iwyu
 
     - name: Configure CMake
