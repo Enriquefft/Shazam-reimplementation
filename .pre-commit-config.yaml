@@ -1,0 +1,21 @@
+fail_fast: false
+exclude: libs
+
+
+repos:
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.21.3
+    hooks:
+      - id: commitizen
+      - id: commitizen-branch
+        stages: [push]
+  - repo: https://github.com/pocc/pre-commit-hooks
+    rev: v1.3.5
+    hooks:
+      - id: clang-format
+        args: [-i]
+      - id: clang-tidy
+        args: ["-p=./build"]
+      - id: cppcheck
+      - id: cpplint
+        args: ["--filter=-whitespace,-legal/copyright"]
