@@ -1,7 +1,6 @@
 fail_fast: false
 exclude: libs
 
-
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.21.3
@@ -17,5 +16,10 @@ repos:
       - id: clang-tidy
         args: ["-p=./build"]
       - id: cppcheck
+        args: ["--project=./build/compile_commands.json"]
+        pass_filenames: false
       - id: cpplint
-        args: ["--filter=-whitespace,-legal/copyright"]
+        args:
+          [
+            "--filter=-whitespace,-legal/copyright,-runtime/references,-build/include_order",
+          ]
