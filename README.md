@@ -1,7 +1,3 @@
----
-lang: en-US
----
-
 # Shazam Reimplementation
 
 A Shazam reimplementation made for the Advanced Data Structures course @utec
