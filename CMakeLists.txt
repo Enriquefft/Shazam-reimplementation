@@ -32,7 +32,7 @@ set_target_properties(
   ${PROJECT_NAME}
   PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path}
              INTERPROCEDURAL_OPTIMIZATION TRUE
-             CXX_STANDARD 23)
+             CXX_STANDARD 20)
 
 target_compile_options(
   common
