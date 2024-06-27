@@ -24,6 +24,8 @@ A Shazam reimplementation made for the Advanced Data Structures course @utec
 
 ## Installation
 
+**_Windows is not supported by default_**
+
 ### Dependencies
 
 - [spdlog](https://github.com/gabime/spdlog)
