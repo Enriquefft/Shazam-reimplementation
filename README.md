@@ -78,10 +78,10 @@ These tools are used as part of the pre-commit tests, they can be disabled by ed
 
 <table>
     <tr >
-        <th style="width:24%;">P1</th>
-        <th style="width:24%;">P1</th>
-        <th style="width:24%;">Nombre larguisisisimoooo</th>
-        <th style="width:24%;">P1</th>
+        <th style="width:24%;">Juan Diego Prochazca</th>
+        <th style="width:24%;">Claudia Noche</th>
+        <th style="width:24%;">Enrique Flores</th>
+        <th style="width:24%;">Luis Jauregui</th>
     </tr>
     <tr >
         <td><a href="https://github.com/AaronCS25"><img src="https://avatars.githubusercontent.com/u/102536323?s=400&v=4"></a></td>
@@ -93,6 +93,4 @@ These tools are used as part of the pre-commit tests, they can be disabled by ed
 
 ## Bibliography
 
-- b1
-- b2
-- b3
+- Wang, Avery. (2003). An Industrial Strength Audio Search Algorithm.
