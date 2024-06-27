@@ -110,13 +110,13 @@ else() # Only use this if spdlog is not installed on your system
 endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE SPDLOG_USE_STD_FORMAT)
 
-#
 # ##############################################################################
+
 # Ctest
 FetchContent_Declare(
   googletest
-  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-)
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG f8d7d77c06936315286eb55f8de22cd23c188571)
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt

@@ -13,7 +13,7 @@
       inputs.nixpkgs = nixpkgs;
       devShell = pkgs: {
 
-        stdenv = pkgs.llvmPackages_latest.stdenv;
+        stdenv = pkgs.llvmPackages_17.stdenv;
 
         env = {
           CC = "clang";
@@ -26,7 +26,7 @@
           commitizen
 
           coreutils
-          clang-tools_18
+          clang-tools_17
           cpplint
           cmake
           cppcheck
