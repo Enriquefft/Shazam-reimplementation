@@ -22,6 +22,8 @@
 
         packages = with pkgs; [
 
+          libsndfile
+
           pre-commit
           commitizen
 

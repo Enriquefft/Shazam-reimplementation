@@ -1,14 +1,17 @@
-#include <vector>
-#include <string>
-#include <sndfile.h>
-#include <stdexcept>
+#ifndef INCLUDE_AUDIOFILE_HPP_
+#define INCLUDE_AUDIOFILE_HPP_
 
-class Audio
-{
+#include <sndfile.h>
+#include <string>
+#include <vector>
+
+class Audio {
 public:
-	std::vector<short> samples;
-	uint64_t rate;
-public:
-	//Read a single-track audio file
-	Audio(std::string path);
+  std::vector<int16_t> m_samples;
+  int m_rate;
+
+  // Read a single-track audio file
+  explicit Audio(const std::string &path);
 };
+
+#endif // INCLUDE_AUDIOFILE_HPP_
