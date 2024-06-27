@@ -5,6 +5,9 @@ CMakeFiles/
 Testing/
 build/
 
+#vscode
+.vscode/
+*.code-workspace
 
 # Prerequisites
 *.d

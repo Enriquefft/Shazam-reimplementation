@@ -18,7 +18,7 @@ endif()
 # ##############################################################################
 # Targets
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/AudioFile.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE include/)
 
 # ##############################################################################
@@ -98,6 +98,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE common)
 # ##############################################################################
 
 include(FetchContent)
+
+# libsndfile
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SNDFILE REQUIRED sndfile)
+target_include_directories(${PROJECT_NAME} PRIVATE ${SNDFILE_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${SNDFILE_LIBRARIES})
 
 # SpdLog
 find_package(spdlog QUIET)

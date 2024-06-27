@@ -28,6 +28,7 @@ A Shazam reimplementation made for the Advanced Data Structures course @utec
 
 - [spdlog](https://github.com/gabime/spdlog)
 - [CrowCpp](https://github.com/CrowCpp/Crow)
+- [libsndfile](https://github.com/libsndfile/libsndfile)
 <!--TODO: revisit after db connection-->
 - [libpqxx](https://github.com/jtv/libpqxx) (probably, not yet implemented)
 
