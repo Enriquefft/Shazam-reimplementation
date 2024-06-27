@@ -64,6 +64,7 @@ target_compile_options(
             -Wno-c99-extensions
             -Wno-zero-as-null-pointer-constant
             -Wno-error=padded
+            -Wno-unused-macros
             >
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fsanitize=address,undefined> #
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fsanitize-address-use-after-scope>
