@@ -64,6 +64,8 @@ target_compile_options(
             -Wno-c99-extensions
             -Wno-zero-as-null-pointer-constant
             -Wno-error=padded
+            # Temporarily removed due to bug upstream
+            # (https://github.com/llvm/llvm-project/issues/59572)
             -Wno-unused-macros
             >
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fsanitize=address,undefined> #
