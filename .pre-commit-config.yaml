@@ -13,8 +13,9 @@ repos:
     hooks:
       - id: clang-format
         args: [-i]
-      - id: clang-tidy
-        args: ["-p=./build"]
+      # Temporarily removed due to bug upstream (https://github.com/llvm/llvm-project/issues/59572)
+      # - id: clang-tidy
+        # args: ["-p=./build"]
       - id: cppcheck
         args: ["--project=./build/compile_commands.json"]
         pass_filenames: false
