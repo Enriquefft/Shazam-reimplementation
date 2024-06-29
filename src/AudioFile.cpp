@@ -1,7 +1,7 @@
 #include "AudioFile.hpp"
 #include <stdexcept>
 
-// Construir audio desde un archivo usando libsndfile
+/// @brief Construir audio desde un archivo usando libsndfile
 Audio::Audio(const std::string &path) {
   SF_INFO sound_file_info;
   SNDFILE *sound_file = sf_open(path.c_str(), SFM_READ, &sound_file_info);
@@ -13,6 +13,8 @@ Audio::Audio(const std::string &path) {
   m_rate = sound_file_info.samplerate;
 
   m_samples.resize(static_cast<ulong>(nsamples));
+
+  // librosa.read()
   sf_count_t nread = sf_read_short(sound_file, m_samples.data(), nsamples);
 
   if (nread != nsamples) {

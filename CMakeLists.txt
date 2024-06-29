@@ -18,7 +18,9 @@ endif()
 # ##############################################################################
 # Targets
 
-add_executable(${PROJECT_NAME} src/main.cpp src/AudioFile.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp)
+target_sources(${PROJECT_NAME} PRIVATE src/Spotify.cpp src/AudioFile.cpp)
+
 target_include_directories(${PROJECT_NAME} PRIVATE include/)
 
 # ##############################################################################
@@ -120,6 +122,24 @@ endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE SPDLOG_USE_STD_FORMAT)
 
 # ##############################################################################
+
+# JSON
+FetchContent_Declare(
+  json
+  GIT_REPOSITORY https://github.com/nlohmann/json
+  GIT_TAG v3.11.3 SYSTEM)
+FetchContent_MakeAvailable(json)
+target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+
+# curl / cpr
+
+FetchContent_Declare(
+  cpr
+  GIT_REPOSITORY https://github.com/libcpr/cpr.git
+  GIT_TAG 3b15fa82ea74739b574d705fea44959b58142eb8
+  SYSTEM)
+FetchContent_MakeAvailable(cpr)
+target_link_libraries(${PROJECT_NAME} PRIVATE cpr::cpr)
 
 # Ctest
 FetchContent_Declare(

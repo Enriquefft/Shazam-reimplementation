@@ -11,6 +11,7 @@
     flakelight ./. {
 
       inputs.nixpkgs = nixpkgs;
+
       devShell = pkgs: {
 
         stdenv = pkgs.llvmPackages_17.stdenv;
@@ -22,7 +23,21 @@
 
         packages = with pkgs; [
 
+          # TODO: this is a dirty hack to make the dependencies available to pkg-config
           libsndfile
+
+          openssl
+
+          pkg-config
+          flac
+          libogg
+          libvorbis
+          libopus
+          libmpg123
+
+          spdlog
+
+          nlohmann_json
 
           pre-commit
           commitizen
@@ -39,6 +54,7 @@
           include-what-you-use
 
         ];
+
       };
     };
 

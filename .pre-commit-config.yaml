@@ -1,5 +1,4 @@
 fail_fast: false
-exclude: libs
 
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
@@ -13,12 +12,8 @@ repos:
     hooks:
       - id: clang-format
         args: [-i]
-      # Temporarily removed due to bug upstream (https://github.com/llvm/llvm-project/issues/59572)
-      # - id: clang-tidy
-        # args: ["-p=./build"]
-      - id: cppcheck
-        args: ["--project=./build/compile_commands.json"]
-        pass_filenames: false
+      - id: clang-tidy
+        args: ["-p=./build"]
       - id: cpplint
         args:
           [
