@@ -57,10 +57,6 @@ auto Spotify::get_track_names(const std::string &playlist_id) const
       std::format("/tracks?fields=items%28track%28name%29%29&limit={}",
                   SPOTIFY_RESPONSE_LIMIT);
 
-  //   curl --request GET \
-  // --url 'https://api.spotify.com/v1/playlists/3p6W0GFxrobpbCet8uQTYk/tracks?fields=items%28track%28name%29%29&limit=50' \
-  // --header 'Authorization: Bearer access_token'
-
   cpr::Response playlist_data =
       cpr::Get(cpr::Url{playlist_url},
                cpr::Header{{"Authorization", "Bearer " + m_access_token}});
