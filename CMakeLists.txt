@@ -127,7 +127,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE SPDLOG_USE_STD_FORMAT)
 FetchContent_Declare(
   json
   GIT_REPOSITORY https://github.com/nlohmann/json
-  GIT_TAG v3.11.3 SYSTEM)
+  GIT_TAG v3.11.3
+  SYSTEM)
 FetchContent_MakeAvailable(json)
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
