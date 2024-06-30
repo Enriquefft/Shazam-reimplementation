@@ -34,8 +34,26 @@ private:
 public:
   // TODO(Enrique, Claudia): generate the Spectrogram
   explicit Spectrogram(const Audio &audio);
+  explicit Spectrogram(std::string csvname);
   // TODO(JuanDiego, Luise): Extract the features from the spectrogram
   auto get_local_maximums() -> std::vector<DataPoint>;
+
+private:
+  /// @brief Get local maxima by maxfiltering subtracting original and finding zeroes
+  /// @param neigh size of sliding window
+  /// @return local maxima points
+  std::vector<DataPoint> maxima_MINLIST_algorithm(int neigh);
+  INTENSITY_T max_in_neigh(size_t maxX, size_t maxY, uint x, uint y, int n);
+  /// @brief get local maxima defined as all points that are greater that those of their neighborhood
+  std::vector<DataPoint> maxima_GTN_algorithm(int neighbourhood,float thrsh);
+  /// @brief  utilkit
+  /// @param maxX size of spectrogram x
+  /// @param maxY size of spectrogram y
+  /// @param x x of evaluated point
+  /// @param y y of evaluated point
+  /// @param n radius of neighbourhood
+  /// @return this point is strictly greater than a square of halfide neighborhood centered on itself
+  bool is_max_in_neigh(size_t maxX, size_t maxY, uint x, uint y, int n,float thrsh);
 };
 
 #endif // INCLUDE_AUDIOFILE_HPP_
