@@ -29,7 +29,8 @@ Audio::Audio(const std::string &path) {
   }
 }
 
-
+/// @brief Read a spectrogram from a CSV like a monochrome image. Delete this on final integration
+/// @param fname filename of the csv to read!
 Spectrogram::Spectrogram(std::string fname) {
     int width, height;
 
