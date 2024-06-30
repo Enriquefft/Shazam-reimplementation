@@ -1,4 +1,5 @@
 #include "AudioFile.hpp"
+#include <filesystem>
 #include <sndfile.h>
 #include <stdexcept>
 
