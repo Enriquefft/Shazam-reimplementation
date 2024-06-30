@@ -1,4 +1,7 @@
 #include "AudioFile.hpp"
+#include <filesystem>
+#include <iostream>
+#include <sndfile.h>
 #include <stdexcept>
 #include <algorithm>
 #include <deque>
@@ -34,8 +37,8 @@ inline bool is_max_in_neigh(size_t X, size_t Y, size_t x, size_t y, int n,INTENS
     for (uint i = xlo;i<xhi;i++)
     {
       for (uint j = ylo;j<yhi;j++)
-      {   
-        //  is not the same point  
+      {
+        //  is not the same point
         if (x == i && y == j) continue;
         if (std::max(0.0f,sp[i][j]-thrsh) + __FLT_EPSILON__ >= std::max(0.0f,sp[x][y]-thrsh)) return false;
       }
@@ -50,7 +53,7 @@ inline bool peak_filter_MINLIST(const INTENSITY_T& maxd, const INTENSITY_T& spd)
 
 
 inline bool peak_filter_MINLIST_GTN(const size_t& x, const size_t& y,
-    const spdata_t& mf, const spdata_t& sp, const size_t& X, const size_t& Y, 
+    const spdata_t& mf, const spdata_t& sp, const size_t& X, const size_t& Y,
     const int neigh, const INTENSITY_T thresh)
 {
   bool is_candidate = mf[x][y] == sp[x][y] && sp[x][y] != 0;
@@ -155,27 +158,41 @@ void maxfilterY(spdata_t& maxfiltered_spectrogram, size_t sp_x, size_t sp_y, int
     }
 }
 
-/// @brief Construir audio desde un archivo usando libsndfile
-Audio::Audio(const std::string &path) {
+template <std::floating_point T>
+Audio<T>::Audio(const std::filesystem::path &path,
+                const std::optional<float> &sample_rate) {
+
+  if (sample_rate != std::nullopt) {
+    throw std::invalid_argument("only native sample_rate is supported");
+  }
+
   SF_INFO sound_file_info;
   SNDFILE *sound_file = sf_open(path.c_str(), SFM_READ, &sound_file_info);
   if (sound_file == nullptr) {
-    throw std::invalid_argument("Could not read file: " + path);
+    throw std::invalid_argument("Could not read file: " + path.string());
   }
 
   sf_count_t nsamples = sound_file_info.frames; // on single channel its same
-  m_rate = sound_file_info.samplerate;
+  m_sample_rate = sound_file_info.samplerate;
 
-  m_samples.resize(static_cast<ulong>(nsamples));
+  m_audiodata.resize(static_cast<ulong>(nsamples));
 
-  // librosa.read()
-  sf_count_t nread = sf_read_short(sound_file, m_samples.data(), nsamples);
+  sf_count_t nread = 0;
+
+  if constexpr (std::is_same_v<T, double>) {
+    nread = sf_read_double(sound_file, m_audiodata.data(), nsamples);
+  }
+  if constexpr (std::is_same_v<T, float>) {
+    nread = sf_read_float(sound_file, m_audiodata.data(), nsamples);
+  }
 
   if (nread != nsamples) {
     sf_close(sound_file);
     throw std::runtime_error("Read " + std::to_string(nread) +
                              " samples, expected " + std::to_string(nsamples));
   }
+
+  sf_close(sound_file);
 }
 
 /// @brief Read a spectrogram from a CSV like a monochrome image. Delete this on final integration
@@ -231,7 +248,7 @@ auto Spectrogram::get_local_maximums() -> std::vector<DataPoint>
 {
   // this is an API function that calls -some- algorithm that returns the local maxima.
   // the idea is to allow hyperparameter tuning that was not defined in the API
-  
+
   //return maxima_GTN_algorithm(30,0.5f);
   return maxima_MINLISTGCN_algorithm(100,30,0.7f);
 }
@@ -314,7 +331,7 @@ CritSet_t Spectrogram::maxima_MINLISTGCN_algorithm(int maxfilter_s,int gtn_s,INT
           dat.push_back(DataPoint{(int)i,(int)j,m_spectrogram[i][j]});
       }
     }
-    
+
     return dat; // Return the result as needed
 }
 
@@ -341,9 +358,42 @@ CritSet_t Spectrogram::maxima_GTN_algorithm(int neighbourhood, float thrsh)
     for (uint j = 0; j<sp_y;j++)
     {
       // detect candidate local maxima
-      if (is_max_in_neigh(sp_x,sp_y,i,j,neighbourhood,avg_loudness*thrsh,m_spectrogram)) 
+      if (is_max_in_neigh(sp_x,sp_y,i,j,neighbourhood,avg_loudness*thrsh,m_spectrogram))
         dat.push_back(DataPoint{(HERTZ_T)i,(TIME_T)j,m_spectrogram[i][j]});
     }
   return dat;
 }
 
+template <std::floating_point T>
+Spectrogram<T>::Spectrogram(const Audio<T> &audio)
+    : m_spectrogram({}), m_features({}) {
+  std::cout << "Creating spectrogram from audio " << audio.m_sample_rate
+            << '\n';
+}
+
+template <std::floating_point T>
+auto Spectrogram<T>::get_spectrogram() -> std::vector<std::vector<T>> {
+  return m_spectrogram;
+}
+
+template <std::floating_point T>
+auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
+  return {};
+}
+
+template <std::floating_point T>
+auto Spectrogram<T>::stft(const Audio<T> &audio, const auto &n_fft,
+                          const auto &hop_length, const auto &window_length) {
+
+  std::cout << "Calculating STFT with params: (" << audio.m_sample_rate << '\t'
+            << n_fft << '\t' << hop_length << '\n'
+            << window_length << '\n';
+}
+
+// Explicit instantiation
+
+template class Audio<float>;
+template class Audio<double>;
+
+template class Spectrogram<float>;
+template class Spectrogram<double>;
