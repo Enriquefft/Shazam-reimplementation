@@ -1,6 +1,5 @@
 #include "AudioFile.hpp"
 #include <filesystem>
-#include <iostream>
 #include <sndfile.h>
 #include <stdexcept>
 
@@ -41,36 +40,7 @@ Audio<T>::Audio(const std::filesystem::path &path,
   sf_close(sound_file);
 }
 
-template <std::floating_point T>
-Spectrogram<T>::Spectrogram(const Audio<T> &audio)
-    : m_spectrogram({}), m_features({}) {
-  std::cout << "Creating spectrogram from audio " << audio.m_sample_rate
-            << '\n';
-}
-
-template <std::floating_point T>
-auto Spectrogram<T>::get_spectrogram() -> std::vector<std::vector<T>> {
-  return m_spectrogram;
-}
-
-template <std::floating_point T>
-auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
-  return {};
-}
-
-template <std::floating_point T>
-auto Spectrogram<T>::stft(const Audio<T> &audio, const auto &n_fft,
-                          const auto &hop_length, const auto &window_length) {
-
-  std::cout << "Calculating STFT with params: (" << audio.m_sample_rate << '\t'
-            << n_fft << '\t' << hop_length << '\n'
-            << window_length << '\n';
-}
-
 // Explicit instantiation
 
 template class Audio<float>;
 template class Audio<double>;
-
-template class Spectrogram<float>;
-template class Spectrogram<double>;

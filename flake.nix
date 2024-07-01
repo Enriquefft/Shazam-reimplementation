@@ -58,6 +58,7 @@
             python-pkgs.numpy
             python-pkgs.librosa
             python-pkgs.matplotlib
+            python-pkgs.scipy
           ]))
 
         ];
