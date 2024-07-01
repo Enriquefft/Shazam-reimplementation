@@ -58,9 +58,12 @@ auto Spectrogram<T>::empty_like(std::pair<size_t, size_t> dimensions)
 template <floating_point T>
 auto Spectrogram<T>::frame(const std::vector<T> &audiodata, size_t frame_length,
                            size_t hop_length) -> std::vector<std::vector<T>> {
+
   if (audiodata.size() < static_cast<size_t>(frame_length)) {
     throw std::invalid_argument(
-        "Input is too short for the given frame length.");
+        std::format("Input is too short for the given frame length. with "
+                    "audiodata_size: {} & frame_length_size: {}",
+                    audiodata.size(), frame_length));
   }
 
   // Calculate the number of frames
@@ -244,6 +247,7 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
     std::vector<T> sliced_audiodata(
         audiodata.begin(),
         audiodata.begin() + static_cast<int64_t>(audiodata_pre_idx));
+
     auto audiodata_pre = pad(sliced_audiodata, padding, padding_mode);
 
     audiodata_frames_pre = frame(audiodata_pre, n_fft, effective_hop_length);
@@ -269,9 +273,11 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
 
       audiodata_frames_post =
           frame(audiodata_post, n_fft, effective_hop_length);
-      //     How many extra frames do we have from the tail?
+
+      // How many extra frames do we have from the tail?
       extra += audiodata_frames_post.size();
     } else {
+
       // In this event, the first frame that touches tail padding would run off
       // the end of the padded array We'll circumvent this by allocating an
       // empty frame buffer for the tail
@@ -282,14 +288,14 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
       audiodata_frames_post = empty_like(post_shape);
     }
   }
-  // audiodata_frames = frame(y[..., start:], frame_length=n_fft,
-  // hop_length=hop_length)
-  auto audiodata_frames =
-      frame(vector(audiodata.begin(),
-                   audiodata.begin() + static_cast<int64_t>(start)),
-            n_fft, effective_hop_length
 
-      );
+  // ERROR HERE
+
+  auto audiodata_frames = frame(
+      vector(audiodata.begin() + static_cast<int64_t>(start), audiodata.end()),
+      n_fft, effective_hop_length
+
+  );
   pair<size_t, size_t> shape = {1 + n_fft / 2, extra};
   auto stft_matrix = empty_like(shape);
 
