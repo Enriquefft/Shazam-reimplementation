@@ -108,7 +108,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${SNDFILE_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${SNDFILE_LIBRARIES})
 
 # SpdLog
-find_package(spdlog REQUIRED QUIET)
+find_package(spdlog QUIET)
 if(spdlog_FOUND)
   target_link_libraries(${PROJECT_NAME} PUBLIC spdlog)
 else() # Only use this if spdlog is not installed on your system

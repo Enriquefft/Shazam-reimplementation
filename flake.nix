@@ -16,11 +16,6 @@
 
         stdenv = pkgs.llvmPackages_17.stdenv;
 
-        env = {
-          CC = "gcc";
-          CXX = "g++";
-        };
-
         packages = with pkgs; [
 
           # TODO: this is a dirty hack to make the dependencies available to pkg-config
@@ -35,7 +30,7 @@
           libopus
           libmpg123
 
-          spdlog
+          # spdlog
 
           nlohmann_json
 
