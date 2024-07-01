@@ -1,6 +1,7 @@
 #ifndef INCLUDE_SPECTROGRAM_HPP_
 #define INCLUDE_SPECTROGRAM_HPP_
 
+#include <complex>
 #include <cstddef>  // for size_t
 #include <cstdint>  // for int64_t
 #include <optional> // for optional, nullopt, nullopt_t
@@ -10,6 +11,8 @@
 template <std::floating_point T> class Audio;
 
 constexpr auto DEFAULT_NFFT = 2048;
+
+// Currently window type and padding mode are limited
 
 enum class WINDOW_FUNCT { HANN };
 enum class PADDING_MODE { CONSTANT };
@@ -41,11 +44,23 @@ private:
             const WINDOW_FUNCT &window = WINDOW_FUNCT::HANN, bool center = true,
             const PADDING_MODE &padding_mode = PADDING_MODE::CONSTANT);
 
+  static auto
+  block_wise_stft(std::vector<std::vector<std::complex<T>>> &stft_matrix,
+                  const std::vector<std::vector<T>> &audiodata_frames,
+                  const std::vector<T> &fft_window, const auto &n_columns,
+                  const size_t &off_start);
+  static auto
+  padding_stft(std::vector<std::vector<std::complex<T>>> &stft_matrix,
+               const std::vector<std::vector<T>> &audiodata_frames_pre,
+               const std::vector<std::vector<T>> &audiodata_frames_post,
+               const std::vector<T> &fft_window);
+
   /// @brief Create an empty 2D matrix with the same dimensions.
   /// @param dimensions Dimensions of the matrix.
   /// @return 2D matrix of the specified dimensions.
-  auto empty_like(std::pair<size_t, size_t> dimensions)
-      -> std::vector<std::vector<T>>;
+  template <typename K>
+  auto generate_matrix(std::pair<size_t, size_t> dimensions)
+      -> std::vector<std::vector<K>>;
 
   /// @brief Frame a given audio data.
   /// @param audiodata The audio data to frame.
@@ -58,7 +73,8 @@ private:
   /// @brief Get the window function.
   /// @param window Type of window function.
   /// @param n_points Number of points in the window.
-  auto get_window(const WINDOW_FUNCT &window, const size_t &n_points);
+  auto get_window(const WINDOW_FUNCT &window, const size_t &n_points)
+      -> std::vector<T>;
 
   /// @brief Generate a Hann window.
   /// @param n_points Number of points in the window.
