@@ -305,24 +305,6 @@ def stft(
 
     stft_matrix = np.zeros(shape, dtype=dtype, order="F")
 
-    print("all variables so far\n")
-    print("stft_matrix: ", len(stft_matrix), len(stft_matrix[0]), stft_matrix.sum())
-    print(
-        "audiodata_frames_pre: ",
-        len(y_frames_pre),
-        len(y_frames_pre[0]),
-        y_frames_pre.sum(),
-    )
-    print(
-        "audiodata_frames_post: {}, {}, {}",
-        len(y_frames_post),
-        len(y_frames_post[0]),
-        (y_frames_post.sum()),
-    )
-    print("fft_window: ", len(fft_window), (fft_window.sum()))
-    print("audiodata_frames: ", len(y_frames), len(y_frames[0]), y_frames.sum())
-
-    # Fill in the warm-upw
     if center and extra > 0:
         off_start = y_frames_pre.shape[-1]
         stft_matrix[..., :off_start] = np.fft.rfft(fft_window * y_frames_pre, axis=-2)
@@ -330,8 +312,8 @@ def stft(
         off_end = y_frames_post.shape[-1]
         if off_end > 0:
             stft_matrix[..., -off_end:] = np.fft.rfft(
-            )
                 fft_window * y_frames_post, axis=-2
+            )
     else:
         off_start = 0
 
