@@ -1,5 +1,5 @@
 #include "Spotify.hpp"
-#include <cpr/cpr.h>
+#include <cpr/api.h>
 #include <cstdlib>
 #include <format>
 #include <iostream>

@@ -1,9 +1,13 @@
 #ifndef INCLUDE_SPECTROGRAM_HPP_
 #define INCLUDE_SPECTROGRAM_HPP_
 
-#include "AudioFile.hpp"
+#include <cstddef>  // for size_t
+#include <cstdint>  // for int64_t
+#include <optional> // for optional, nullopt, nullopt_t
 #include <utility>
 #include <vector>
+
+template <std::floating_point T> class Audio;
 
 constexpr auto DEFAULT_NFFT = 2048;
 
