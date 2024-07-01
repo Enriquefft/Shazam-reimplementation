@@ -310,6 +310,10 @@ def stft(
     else:
         off_start = 0
 
+    print(type(y_frames))
+    print(y_frames.dtype)
+    print("itemsize: ", y_frames.itemsize)
+    print(y_frames.shape)
     n_columns = int(MAX_MEM_BLOCK // (np.prod(y_frames.shape[:-1]) * y_frames.itemsize))
     n_columns = max(n_columns, 1)
 
