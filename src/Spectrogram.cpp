@@ -3,7 +3,12 @@
 #include <cmath>
 #include <format>
 #include <iostream>
-#include <sndfile.h>
+
+#include <numbers>
+#include <stdexcept>
+#include <string_view>
+
+#include "AudioFile.hpp"
 
 using std::floating_point;
 using std::pair;
@@ -34,9 +39,11 @@ template <floating_point T>
 auto Spectrogram<T>::get_window(const WINDOW_FUNCT &window,
                                 const size_t &n_points) {
   switch (window) {
-  case WINDOW_FUNCT::HANN:
+  case WINDOW_FUNCT::HANN: {
     return hann(n_points);
   }
+  }
+  throw std::invalid_argument("invalid WINDOW_FUNCT");
 }
 
 template <floating_point T>

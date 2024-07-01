@@ -20,7 +20,8 @@ endif()
 # Targets
 
 add_executable(${PROJECT_NAME} src/main.cpp)
-target_sources(${PROJECT_NAME} PRIVATE src/Spotify.cpp src/AudioFile.cpp src/Spectrogram.cpp)
+target_sources(${PROJECT_NAME} PRIVATE src/Spotify.cpp src/AudioFile.cpp
+                                       src/Spectrogram.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE include/)
 
@@ -29,12 +30,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE include/)
 add_library(common INTERFACE)
 target_compile_features(common INTERFACE cxx_std_20)
 
-# TODO: add iwty required - currently not working on windows
-find_program(iwyu_path NAMES include-what-you-use iwyu)
-set_target_properties(
-  ${PROJECT_NAME}
-  PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE
-             CXX_STANDARD 20)
+set_target_properties(${PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION
+                                                 TRUE CXX_STANDARD 20)
 
 target_compile_options(
   common
@@ -94,7 +91,7 @@ target_link_options(
 
 # Threads needed in gcc
 set(THREADS_HAVE_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
+find_package(Threads REQUIRED QUIET)
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 
 # config
@@ -105,13 +102,13 @@ target_link_libraries(${PROJECT_NAME} PRIVATE common)
 include(FetchContent)
 
 # libsndfile
-find_package(PkgConfig REQUIRED)
+find_package(PkgConfig REQUIRED QUIET)
 pkg_check_modules(SNDFILE REQUIRED sndfile)
 target_include_directories(${PROJECT_NAME} PRIVATE ${SNDFILE_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${SNDFILE_LIBRARIES})
 
 # SpdLog
-find_package(spdlog QUIET)
+find_package(spdlog REQUIRED QUIET)
 if(spdlog_FOUND)
   target_link_libraries(${PROJECT_NAME} PUBLIC spdlog)
 else() # Only use this if spdlog is not installed on your system

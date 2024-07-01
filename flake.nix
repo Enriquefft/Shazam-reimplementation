@@ -17,8 +17,8 @@
         stdenv = pkgs.llvmPackages_17.stdenv;
 
         env = {
-          CC = "clang";
-          CXX = "clang++";
+          CC = "gcc";
+          CXX = "g++";
         };
 
         packages = with pkgs; [
