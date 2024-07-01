@@ -9,6 +9,7 @@
 using HERTZ_T = int;
 using TIME_T = int;
 using INTENSITY_T = float;
+using HASH_T = uint32_t;
 
 struct DataPoint {
   HERTZ_T hertz;
@@ -35,25 +36,33 @@ public:
   // TODO(Enrique, Claudia): generate the Spectrogram
   explicit Spectrogram(const Audio &audio);
   explicit Spectrogram(std::string csvname);
+
+
+  size_t getX();
+  size_t getY();
   // TODO(JuanDiego, Luise): Extract the features from the spectrogram
   auto get_local_maximums() -> std::vector<DataPoint>;
-
+  auto get_hashes() -> std::vector<uint32_t>;
 private:
+
+//================================= MAXIMA FINDING ========================================
   /// @brief Get local maxima by maxfiltering subtracting original and finding zeroes
   /// @param neigh size of sliding window
   /// @return local maxima points
   std::vector<DataPoint> maxima_MINLIST_algorithm(int neigh);
-  INTENSITY_T max_in_neigh(size_t maxX, size_t maxY, uint x, uint y, int n);
+  /// @brief O(n) implementation of maxima_MINLIST_algorithm. May have slightly different results
+  /// @param neigh size of sliding windowlocal maxima points
+  /// @return local maxima points
+  std::vector<DataPoint> maxima_MINLIST_algorithm_optimized(int neigh);
+  /// @brief Find maximum points by first pulling candidates using optimized MINLIST and culling them with GTN
+  /// @param maxfilter_s size of maxfilter window
+  /// @param gtn_s size of GTN window
+  /// @param thresh How much above average must a local maxima be.
+  /// @return local maxima points
+  std::vector<DataPoint> maxima_MINLISTGCN_algorithm(int maxfilter_s,int gtn_s,INTENSITY_T thresh);
   /// @brief get local maxima defined as all points that are greater that those of their neighborhood
   std::vector<DataPoint> maxima_GTN_algorithm(int neighbourhood,float thrsh);
-  /// @brief  utilkit
-  /// @param maxX size of spectrogram x
-  /// @param maxY size of spectrogram y
-  /// @param x x of evaluated point
-  /// @param y y of evaluated point
-  /// @param n radius of neighbourhood
-  /// @return this point is strictly greater than a square of halfide neighborhood centered on itself
-  bool is_max_in_neigh(size_t maxX, size_t maxY, uint x, uint y, int n,float thrsh);
+// ================================= HASH GENERATION ========================================
 };
 
 #endif // INCLUDE_AUDIOFILE_HPP_

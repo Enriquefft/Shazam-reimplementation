@@ -5,12 +5,10 @@
 
 auto main() -> int {
   std::string s;
-  std::cin >> s;
+  //std::cin >> s;
 
-  Spectrogram sp(s);
-  for (auto& i:sp.get_local_maximums())
-  {
-    std::cout << i.time << ", " << i.hertz << std::endl;
-  }
+  Spectrogram sp("assets/noisy.csv");
+  sp.get_local_maximums();
+  // std::cout << "Local Maxima found (processed " << sp.getX() << ','<< sp.getY() <<") pixels" << std::endl;
   return 0;
 }
