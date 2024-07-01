@@ -10,6 +10,7 @@
 #include <vector>
 
 template <std::floating_point T> class Audio;
+
 constexpr auto DEFAULT_NFFT = 2048;
 
 // Currently window type and padding mode are limited
