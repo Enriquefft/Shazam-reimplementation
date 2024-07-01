@@ -12,20 +12,18 @@ MAX_MEM_BLOCK = 2**8 * 2**10
 filename = "../assets/3. You & Me - Good & Evil.wav"
 
 
-def hann(n_points:int):
-
-    a = [0.5, 1.-0.5]
+def hann(n_points: int):
+    a = [0.5, 1.0 - 0.5]
     if n_points <= 1:
         return np.ones(n_points)
-    n_points+=1
-
+    n_points += 1
 
     fac = np.linspace(-np.pi, np.pi, n_points)
     w = np.zeros(n_points)
     for k in range(len(a)):
         w += a[k] * np.cos(k * fac)
 
-    return  w[:-1]
+    return w[:-1]
 
 
 def valid_audio(y: np.ndarray) -> bool:
@@ -302,6 +300,7 @@ def frame(
     # This implementation is derived from numpy.lib.stride_tricks.sliding_window_view (1.20.0)
     # https://numpy.org/doc/stable/reference/generated/numpy.lib.stride_tricks.sliding_window_view.html
 
+
     x = np.array(x, copy=False, subok=subok)
 
     if x.shape[axis] < frame_length:
@@ -337,9 +336,7 @@ def frame(
     return xw[tuple(slices)]
 
 
-def pad_center(
-    data: NDArray[np.float64], size: int
-) -> NDArray[np.float64]:
+def pad_center(data: NDArray[np.float64], size: int) -> NDArray[np.float64]:
     """Pad an array to a target length along a target axis.
 
     This differs from `np.pad` by centering the data prior to padding,
@@ -410,9 +407,7 @@ def pad_center(
 
 
 # fft_window = utils.expand_to(fft_window, ndim=1 + y.ndim, axes=-2)
-def expand_to(
-    x:NDArray[np.float64] , ndim: int
-) -> np.ndarray:
+def expand_to(x: NDArray[np.float64], ndim: int) -> np.ndarray:
     """Expand the dimensions of an input array with
 
     Parameters
