@@ -3,7 +3,6 @@
 
 #include <filesystem>
 #include <optional>
-#include <sndfile.h>
 #include <vector>
 
 template <std::floating_point T> class Audio {
@@ -77,8 +76,5 @@ explicit Spectrogram(const Audio<T> &audio) -> Spectrogram<T>;
 
 extern template class Audio<float>;
 extern template class Audio<double>;
-
-extern template class Spectrogram<float>;
-extern template class Spectrogram<double>;
 
 #endif // INCLUDE_AUDIOFILE_HPP_

@@ -1,6 +1,5 @@
 #include "AudioFile.hpp"
 #include <filesystem>
-#include <iostream>
 #include <sndfile.h>
 #include <stdexcept>
 #include <algorithm>
@@ -394,6 +393,3 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const auto &n_fft,
 
 template class Audio<float>;
 template class Audio<double>;
-
-template class Spectrogram<float>;
-template class Spectrogram<double>;
