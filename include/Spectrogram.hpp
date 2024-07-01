@@ -14,47 +14,94 @@ constexpr auto DEFAULT_NFFT = 2048;
 enum class WINDOW_FUNCT { HANN };
 enum class PADDING_MODE { CONSTANT };
 
+/// @brief Class to generate and manipulate spectrograms from audio data.
 template <std::floating_point T> class Spectrogram {
 private:
+  /// @brief Structure to hold spectrogram data points.
   struct DataPoint {
-    size_t hertz;
-    size_t time;
-    T intensity;
+    size_t hertz; ///< Frequency bin.
+    size_t time;  ///< Time bin.
+    T intensity;  ///< Intensity of the frequency at the given time.
   };
 
-  std::vector<std::vector<T>> m_spectrogram;
-  std::vector<DataPoint> m_features;
+  std::vector<std::vector<T>> m_spectrogram; ///< 2D matrix for spectrogram.
+  std::vector<DataPoint> m_features; ///< Extracted features from spectrogram.
 
+  /// @brief Short-time Fourier transform (STFT) calculation.
+  /// @param audio The audio data to transform.
+  /// @param n_fft Number of FFT components.
+  /// @param hop_length Number of audio samples between adjacent STFT columns.
+  /// @param window_length Each frame of audio is windowed by window_length.
+  /// @param window Type of window function to use.
+  /// @param center If true, pads the signal to center the frame.
+  /// @param padding_mode Padding strategy to use.
   void stft(const Audio<T> &audio, const size_t &n_fft = DEFAULT_NFFT,
             const std::optional<size_t> &hop_length = std::nullopt,
             const std::optional<size_t> &window_length = std::nullopt,
             const WINDOW_FUNCT &window = WINDOW_FUNCT::HANN, bool center = true,
             const PADDING_MODE &padding_mode = PADDING_MODE::CONSTANT);
+
+  /// @brief Create an empty 2D matrix with the same dimensions.
+  /// @param dimensions Dimensions of the matrix.
+  /// @return 2D matrix of the specified dimensions.
   auto empty_like(std::pair<size_t, size_t> dimensions)
       -> std::vector<std::vector<T>>;
 
+  /// @brief Frame a given audio data.
+  /// @param audiodata The audio data to frame.
+  /// @param frame_length Length of each frame.
+  /// @param hop_length Number of samples between frames.
+  /// @return 2D matrix with framed audio data.
   auto frame(const std::vector<T> &audiodata, size_t frame_length,
              size_t hop_length) -> std::vector<std::vector<T>>;
+
+  /// @brief Get the window function.
+  /// @param window Type of window function.
+  /// @param n_points Number of points in the window.
   auto get_window(const WINDOW_FUNCT &window, const size_t &n_points);
+
+  /// @brief Generate a Hann window.
+  /// @param n_points Number of points in the window.
+  /// @return Hann window.
   static auto hann(size_t n_points) -> std::vector<T>;
+
+  /// @brief Center and pad a given data.
+  /// @param data The data to pad.
+  /// @param target_size The target size after padding.
+  /// @param padding_mode Padding strategy to use.
+  /// @return Padded data.
   static auto
   pad_center(const std::vector<T> &data, const size_t &target_size,
              const PADDING_MODE &padding_mode = PADDING_MODE::CONSTANT)
-
       -> std::vector<T>;
+
+  /// @brief Pad the data to a specified width.
+  /// @param data The data to pad.
+  /// @param pad_width Pair of padding sizes for each end.
+  /// @param padding_mode Padding strategy to use.
+  /// @param constant_value Value to use for constant padding.
+  /// @return Padded data.
   static auto pad(const std::vector<T> &data,
                   const std::pair<int64_t, int64_t> &pad_width,
                   const PADDING_MODE &padding_mode = PADDING_MODE::CONSTANT,
                   const T &constant_value = T{}) -> std::vector<T>;
+
+  /// @brief Expand the data to a specified dimension.
+  /// @param data The data to expand.
+  /// @param target_dim The target dimension.
   static auto expand_to(const std::vector<T> &data, const size_t &target_dim);
 
 public:
-  // TODO(Enrique, Claudia): generate the Spectrogram
+  /// @brief Constructor to generate the Spectrogram from audio data.
+  /// @param audio The audio data to use.
   explicit Spectrogram(const Audio<T> &audio);
 
+  /// @brief Get the generated spectrogram.
+  /// @return 2D matrix of the spectrogram.
   auto get_spectrogram() -> std::vector<std::vector<T>>;
 
-  // TODO(JuanDiego, Luise): Extract the features from the spectrogram
+  /// @brief Extract local maximum features from the spectrogram.
+  /// @return Vector of data points representing local maximums.
   auto get_local_maximums() -> std::vector<DataPoint>;
 };
 
