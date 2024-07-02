@@ -252,7 +252,15 @@ def stft(
             mode=pad_mode,
         )
 
-        y_frames_pre = utils.frame(y_pre, frame_length=n_fft, hop_length=hop_length)
+        y_frames_pre = utils.frame2(y_pre, frame_length=n_fft, hop_length=hop_length)
+
+        print(
+            "audiodata_frames_pre: ",
+            len(y_frames_pre),
+            len(y_frames_pre[0]),
+            y_frames_pre.sum(),
+        )
+
         # Trim this down to the exact number of frames we should have
         y_frames_pre = y_frames_pre[..., :start_k]
 
@@ -266,7 +274,7 @@ def stft(
             y_post = np.pad(
                 y[..., (tail_k) * hop_length - n_fft // 2 :], padding, mode=pad_mode
             )
-            y_frames_post = utils.frame(
+            y_frames_post = utils.frame2(
                 y_post, frame_length=n_fft, hop_length=hop_length
             )
             # How many extra frames do we have from the tail?
@@ -284,7 +292,7 @@ def stft(
         dtype = utils.dtype_r2c(y.dtype)
 
     # Window the time series.
-    y_frames = utils.frame(y[..., start:], frame_length=n_fft, hop_length=hop_length)
+    y_frames = utils.frame2(y[..., start:], frame_length=n_fft, hop_length=hop_length)
 
     # Pre-allocate the STFT matrix
     shape = list(y_frames.shape)
@@ -297,7 +305,24 @@ def stft(
 
     stft_matrix = np.zeros(shape, dtype=dtype, order="F")
 
-    # Fill in the warm-up
+    print("all variables so far\n")
+    print("stft_matrix: ", len(stft_matrix), len(stft_matrix[0]), stft_matrix.sum())
+    print(
+        "audiodata_frames_pre: ",
+        len(y_frames_pre),
+        len(y_frames_pre[0]),
+        y_frames_pre.sum(),
+    )
+    print(
+        "audiodata_frames_post: {}, {}, {}",
+        len(y_frames_post),
+        len(y_frames_post[0]),
+        (y_frames_post.sum()),
+    )
+    print("fft_window: ", len(fft_window), (fft_window.sum()))
+    print("audiodata_frames: ", len(y_frames), len(y_frames[0]), y_frames.sum())
+
+    # Fill in the warm-upw
     if center and extra > 0:
         off_start = y_frames_pre.shape[-1]
         stft_matrix[..., :off_start] = np.fft.rfft(fft_window * y_frames_pre, axis=-2)
@@ -310,10 +335,6 @@ def stft(
     else:
         off_start = 0
 
-    print(type(y_frames))
-    print(y_frames.dtype)
-    print("itemsize: ", y_frames.itemsize)
-    print(y_frames.shape)
     n_columns = int(MAX_MEM_BLOCK // (np.prod(y_frames.shape[:-1]) * y_frames.itemsize))
     n_columns = max(n_columns, 1)
 

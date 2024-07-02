@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <numbers>
+#include <numeric>
 #include <stdexcept>
 #include <string_view>
 
@@ -14,6 +15,8 @@
 using std::floating_point;
 using std::pair;
 using std::vector;
+
+template <typename T> using matrix_t = vector<vector<T>>;
 
 /// @brief constexpr binary exponentiation
 constexpr auto binpow(int64_t base, uint64_t exponent) -> int64_t {
@@ -30,10 +33,74 @@ constexpr auto binpow(int64_t base, uint64_t exponent) -> int64_t {
 
 constexpr auto MAX_MEM_BLOCK = binpow(2, 8) * binpow(2, 10);
 
-template <typename T> using matrix_t = vector<vector<T>>;
+template <floating_point T>
+auto Spectrogram<T>::compute_abs(
+    const std::vector<std::vector<std::complex<T>>> &complex_matrix)
+    -> std::vector<std::vector<T>> {
+
+  std::vector<std::vector<T>> abs_matrix(
+      complex_matrix.size(), std::vector<T>(complex_matrix.at(0).size()));
+
+  for (size_t i = 0; i < complex_matrix.size(); ++i) {
+    for (size_t j = 0; j < complex_matrix.at(i).size(); ++j) {
+      abs_matrix.at(i).at(j) = std::abs(complex_matrix.at(i).at(j));
+    }
+  }
+
+  return abs_matrix;
+}
+
+template <floating_point T>
+constexpr auto printable_complex(const std::complex<T> &num) -> std::string {
+  return std::format("({}, {})", std::real(num), std::imag(num));
+}
+
+// Function to sum elements in a vector<T>
+template <typename T> constexpr auto sum_vector(const vector<T> &vec) -> T {
+  return std::accumulate(vec.begin(), vec.end(), T{});
+}
+
+// Function to sum elements in a vector<vector<T>>
+template <typename T> constexpr auto sum_vector(const matrix_t<T> &vec) -> T {
+  T total_sum = T{};
+  for (const auto &sub_vec : vec) {
+    total_sum += sum_vector(sub_vec);
+  }
+  return total_sum;
+}
+
+template <typename T> struct IsComplexT : public std::false_type {};
+template <typename T>
+struct IsComplexT<std::complex<T>> : public std::true_type {};
+template <typename T> constexpr auto is_complex() -> bool {
+  return IsComplexT<T>::value;
+}
 
 template <typename... Args> void print(std::string_view fmt, Args &&...args) {
   std::cout << std::vformat(fmt, std::make_format_args(args...)) << std::endl;
+}
+
+template <typename T>
+constexpr void vector_info(const vector<T> &vec, const std::string &name) {
+  if constexpr (is_complex<T>()) {
+    print("{} info:\tsize: {}, sum: {}", name, vec.size(),
+          printable_complex(sum_vector(vec)));
+  } else {
+    print("{} info:\tsize: {}, sum: {}", name, vec.size(), sum_vector(vec));
+  }
+}
+
+template <typename T>
+constexpr void vector_info(const matrix_t<T> &vec, const std::string &name) {
+
+  if constexpr (is_complex<T>()) {
+    print("{} info:\tsize: {}, size.at(0): {}, sum: {}", name, vec.size(),
+          vec.at(0).size(), printable_complex(sum_vector(vec)));
+  } else {
+
+    print("{} info:\tsize: {}, size.at(0): {}, sum: {}", name, vec.size(),
+          vec.at(0).size(), sum_vector(vec));
+  }
 }
 
 template <floating_point T>
@@ -132,15 +199,15 @@ auto Spectrogram<T>::frame(const vector<T> &audiodata, size_t frame_length,
 
   // Calculate the number of frames
   auto num_frames = 1 + (audiodata.size() - frame_length) / hop_length;
-  // auto num_frames = static_cast<int>(x.size()) / hop_length;
 
   // Initialize the output vector
-  matrix_t<T> frames(num_frames, vector<T>(frame_length));
+  matrix_t<T> frames(frame_length, vector<T>(num_frames));
 
   // Populate the frames
   for (size_t i = 0; i < num_frames; ++i) {
-    for (size_t j = 0; j < frame_length; ++j) {
-      frames[i][j] = audiodata[i * hop_length + j];
+    auto start = i * hop_length;
+    for (size_t j = 0; j < frame_length; j++) {
+      frames.at(j).at(i) = audiodata.at(start + j);
     }
   }
 
@@ -240,7 +307,7 @@ auto Spectrogram<T>::expand_to(const vector<T> &data,
 
   // Copy the original data to the expanded vector
   for (size_t i = 0; i < data.size(); ++i) {
-    expanded[0][i] = data[i];
+    expanded.at(0).at(i) = data.at(i);
   }
 
   return expanded;
@@ -315,6 +382,8 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
 
     audiodata_frames_pre = frame(audiodata_pre, n_fft, effective_hop_length);
 
+    vector_info(audiodata_frames_pre, "audiodata_frames_pre");
+
     // # Trim this down to the exact number of frames we should have
     audiodata_frames_pre =
         vector(audiodata_frames_pre.begin(),
@@ -340,9 +409,9 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
       extra += audiodata_frames_post.size();
     } else {
 
-      // In this event, the first frame that touches tail padding would run off
-      // the end of the padded array We'll circumvent this by allocating an
-      // empty frame buffer for the tail
+      // In this event, the first frame that touches tail padding would run
+      // off the end of the padded array We'll circumvent this by allocating
+      // an empty frame buffer for the tail
       //  this keeps the subsequent logic simple
 
       pair<size_t, size_t> post_shape = {audiodata_frames_pre.size(), 0};
@@ -356,7 +425,15 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
       n_fft, effective_hop_length);
 
   pair<size_t, size_t> shape = {1 + n_fft / 2, extra};
-  auto stft_matrix = generate_matrix<std::complex<T>>(shape);
+  matrix_t<std::complex<T>> stft_matrix =
+      generate_matrix<std::complex<T>>(shape);
+
+  print("all variables so far\n");
+  vector_info(stft_matrix, "stft_matrix");
+  vector_info(audiodata_frames_pre, "audiodata_frames_pre");
+  vector_info(audiodata_frames_post, "audiodata_frames_post");
+  vector_info(fft_window, "fft_window");
+  vector_info(audiodata_frames, "audiodata_frames");
 
   // Proccesss the extra padding frames with fft if needed
   size_t off_start = 0;
@@ -371,6 +448,7 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
   // Process the main audiodata with a block-based sliding window
   stft_matrix = block_wise_stft(stft_matrix, audiodata_frames, fft_window,
                                 n_columns, off_start);
+  m_spectrogram = compute_abs(stft_matrix);
 }
 
 // Explicit instantiation

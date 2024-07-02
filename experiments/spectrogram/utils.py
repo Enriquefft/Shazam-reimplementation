@@ -169,6 +169,35 @@ def dtype_r2c(d: DTypeLike, *, default: Optional[type] = np.complex64) -> DTypeL
     return np.dtype(mapping.get(dt, default))
 
 
+def frame2(x: np.ndarray, frame_length: int, hop_length: int) -> np.ndarray:
+    x = np.asarray(x)
+
+    if x.ndim != 1:
+        raise ValueError("Input must be a 1D array")
+
+    if x.shape[0] < frame_length:
+        raise ValueError("Input is too short for the frame length")
+
+    num_frames = 1 + (x.shape[0] - frame_length) // hop_length
+
+    # Initialize the output array
+    x_frames = np.empty((frame_length, num_frames), dtype=x.dtype)
+
+    print("x", x.shape, x[0].shape, x.sum())
+    print("x_frames", x_frames.shape, x_frames[0].shape, x_frames.sum())
+    print("frame_length", frame_length)
+    print("hop_length", hop_length)
+    print("num_frames", num_frames)
+
+    # Populate the output array with frames
+    for i in range(num_frames):
+        start = i * hop_length
+        for j in range(frame_length):
+            x_frames[j, i] = x[start + j]
+
+    return x_frames
+
+
 def frame(
     x: np.ndarray,
     *,
@@ -300,7 +329,6 @@ def frame(
     # This implementation is derived from numpy.lib.stride_tricks.sliding_window_view (1.20.0)
     # https://numpy.org/doc/stable/reference/generated/numpy.lib.stride_tricks.sliding_window_view.html
 
-
     x = np.array(x, copy=False, subok=subok)
 
     if x.shape[axis] < frame_length:
@@ -319,6 +347,7 @@ def frame(
     x_shape_trimmed[axis] -= frame_length - 1
 
     out_shape = tuple(x_shape_trimmed) + tuple([frame_length])
+
     xw = as_strided(
         x, strides=out_strides, shape=out_shape, subok=subok, writeable=writeable
     )

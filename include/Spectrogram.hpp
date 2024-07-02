@@ -44,6 +44,10 @@ private:
             const WINDOW_FUNCT &window = WINDOW_FUNCT::HANN, bool center = true,
             const PADDING_MODE &padding_mode = PADDING_MODE::CONSTANT);
 
+  auto
+  compute_abs(const std::vector<std::vector<std::complex<T>>> &complex_matrix)
+      -> std::vector<std::vector<T>>;
+
   static auto
   block_wise_stft(std::vector<std::vector<std::complex<T>>> &stft_matrix,
                   const std::vector<std::vector<T>> &audiodata_frames,
