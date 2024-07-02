@@ -330,8 +330,8 @@ def stft(
         off_end = y_frames_post.shape[-1]
         if off_end > 0:
             stft_matrix[..., -off_end:] = np.fft.rfft(
-                fft_window * y_frames_post, axis=-2
             )
+                fft_window * y_frames_post, axis=-2
     else:
         off_start = 0
 

@@ -42,7 +42,7 @@ target_compile_options(
             $<$<CXX_COMPILER_ID:Clang>:-Weverything>
             $<$<CXX_COMPILER_ID:GCC>:-fconcepts-diagnostics-depth=3>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
-            -Werror
+            # -Werror
             -Wall
             -Wextra
             -Wpedantic

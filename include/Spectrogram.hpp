@@ -5,11 +5,11 @@
 #include <cstddef>  // for size_t
 #include <cstdint>  // for int64_t
 #include <optional> // for optional, nullopt, nullopt_t
+#include <string>
 #include <utility>
 #include <vector>
 
 template <std::floating_point T> class Audio;
-
 constexpr auto DEFAULT_NFFT = 2048;
 
 // Currently window type and padding mode are limited
@@ -125,43 +125,43 @@ private:
   /// zeroes
   /// @param neigh size of sliding window
   /// @return local maxima points
-  auto maxima_MINLIST_algorithm(int neigh) -> std::vector<DataPoint>;
+  auto maxima_minlist_algorithm(int neigh) -> std::vector<DataPoint>;
   /// @brief O(n) implementation of maxima_MINLIST_algorithm. May have slightly
   /// different results
   /// @param neigh size of sliding windowlocal maxima points
   /// @return local maxima points
-  auto maxima_MINLIST_algorithm_optimized(int neigh) -> std::vector<DataPoint>;
+  auto maxima_minlist_algorithm_optimized(int neigh) -> std::vector<DataPoint>;
   /// @brief Find maximum points by first pulling candidates using optimized
   /// MINLIST and culling them with GTN
   /// @param maxfilter_s size of maxfilter window
   /// @param gtn_s size of GTN window
   /// @param thresh How much above average must a local maxima be.
   /// @return local maxima points
-  auto maxima_MINLISTGCN_algorithm(int maxfilter_s, int gtn_s,
+  auto maxima_minlistgcn_algorithm(int maxfilter_s, int gtn_s,
                                    intensity_t thresh)
       -> std::vector<DataPoint>;
   /// @brief get local maxima defined as all points that are greater that those
   /// of their neighborhood
-  auto maxima_GTN_algorithm(int neighbourhood, float thrsh)
+  auto maxima_gtn_algorithm(int neighbourhood, float thrsh)
       -> std::vector<DataPoint>;
 
   // ================================= HASH GENERATION
   inline auto is_max_in_neigh(size_t X, size_t Y, size_t x, size_t y, int n,
                               intensity_t thrsh, const spdata_t &sp) -> bool;
-  inline auto peak_filter_MINLIST(const intensity_t &maxd,
+  inline auto peak_filter_minlist(const intensity_t &maxd,
                                   const intensity_t &spd) -> bool;
-  inline bool peak_filter_MINLIST_GTN(const size_t &x, const size_t &y,
+  inline auto peak_filter_minlist_gtn(const size_t &x, const size_t &y,
                                       const spdata_t &mf, const spdata_t &sp,
                                       const size_t &X, const size_t &Y,
-                                      const int neigh,
-                                      const intensity_t Thresh);
+                                      const int neigh, const intensity_t Thresh)
+      -> bool;
   auto max_in_neigh(size_t X, size_t Y, uint x, uint y, int n,
                     const spdata_t &sp) -> intensity_t;
-  void maxfilterX(spdata_t &maxfiltered_spectrogram,
-                  const spdata_t &spectrogram, size_t sp_x, size_t sp_y,
-                  int neigh);
-  void maxfilterY(spdata_t &maxfiltered_spectrogram, size_t sp_x, size_t sp_y,
-                  int neigh);
+  void maxfilter_x(spdata_t &maxfiltered_spectrogram,
+                   const spdata_t &spectrogram, size_t sp_x, size_t sp_y,
+                   int neigh);
+  void maxfilter_y(spdata_t &maxfiltered_spectrogram, size_t sp_x, size_t sp_y,
+                   int neigh);
 
 public:
   /// @brief Constructor to generate the Spectrogram from audio data.
@@ -173,8 +173,8 @@ public:
   /// @param fname filename of the csv to read!
   explicit Spectrogram(std::string csvname);
 
-  size_t getX();
-  size_t getY();
+  auto get_x() -> size_t;
+  auto get_y() -> size_t;
 
   auto get_hashes() -> std::vector<uint32_t>;
 

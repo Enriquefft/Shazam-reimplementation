@@ -193,11 +193,6 @@ auto Spectrogram<T>::get_spectrogram() -> matrix_t<T> {
   return m_spectrogram;
 }
 
-template <floating_point T>
-auto Spectrogram<T>::get_local_maximums() -> vector<DataPoint> {
-  return {};
-}
-
 template <typename T>
 inline auto slice_matrix(const matrix_t<T> &matrix, size_t off_start)
     -> matrix_t<T> {
