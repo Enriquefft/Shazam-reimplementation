@@ -32,8 +32,7 @@ target_compile_features(common INTERFACE cxx_std_20)
 find_program(iwyu_path NAMES include-what-you-use iwyu)
 set_target_properties(
   ${PROJECT_NAME}
-  PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path}
-             INTERPROCEDURAL_OPTIMIZATION TRUE
+  PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE
              CXX_STANDARD 20)
 
 target_compile_options(
