@@ -105,32 +105,75 @@ constexpr void vector_info(const matrix_t<T> &vec, const std::string &name) {
   }
 }
 
+template <typename T>
+auto multiply(const std::vector<T> &array_1d,
+              const std::vector<std::vector<T>> &array_2d)
+    -> std::vector<vector<T>> {
+  // Get the dimensions of the input arrays
+  size_t rows = array_2d.size();
+  size_t cols = array_2d[0].size();
+
+  // Initialize the result array with the same dimensions as array_2d
+  std::vector<std::vector<T>> result(rows, std::vector<T>(cols));
+
+  // Perform the element-wise multiplication
+  for (size_t i = 0; i < rows; ++i) {
+    for (size_t j = 0; j < cols; ++j) {
+      result[i][j] = array_1d[i] * array_2d[i][j];
+    }
+  }
+
+  return result;
+}
+
 template <floating_point T>
 auto Spectrogram<T>::block_wise_stft(matrix_t<std::complex<T>> &stft_matrix,
                                      const matrix_t<T> &audiodata_frames,
                                      const vector<T> &fft_window,
                                      const auto &n_columns,
-                                     const size_t &off_start) {
+                                     const size_t &off_start)
+    -> pair<matrix_t<std::complex<T>>, size_t> {
 
   // TODO(enrique): implement block_wise_stft
   print("Calling block_wise_stft with: {}, {}, {}, {}, {}", stft_matrix.size(),
         audiodata_frames.size(), audiodata_frames.size(), fft_window.size(),
         n_columns, off_start);
-  return stft_matrix;
+  return {stft_matrix, 0};
 }
 
 template <floating_point T>
-auto Spectrogram<T>::padding_stft(
-    std::vector<std::vector<std::complex<T>>> &stft_matrix,
-    const std::vector<std::vector<T>> &audiodata_frames_pre,
-    const std::vector<std::vector<T>> &audiodata_frames_post,
-    const std::vector<T> &fft_window) {
-  // TODO(enrique): implement padding_stft
+auto Spectrogram<T>::padding_stft(matrix_t<std::complex<T>> &stft_matrix,
+                                  const matrix_t<T> &audiodata_frames_pre,
+                                  const matrix_t<T> &audiodata_frames_post,
+                                  const vector<T> &fft_window)
+    -> pair<matrix_t<std::complex<T>>, size_t> {
 
-  print("Calling padding_stft with: {}, {}, {}, {}", stft_matrix.size(),
-        audiodata_frames_pre.size(), audiodata_frames_post.size(),
-        fft_window.size());
-  return stft_matrix;
+  vector<vector<std::complex<T>>> fft_pre =
+      compute_dft(multiply(fft_window, audiodata_frames_pre));
+  vector<vector<std::complex<T>>> fft_post =
+      compute_dft(multiply(fft_window, audiodata_frames_post));
+
+  size_t off_start = audiodata_frames_pre.at(0).size();
+  size_t off_end = audiodata_frames_post.at(0).size();
+
+  // Copy fft_pre into stft_matrix at the beginning
+  for (size_t i = 0; i < stft_matrix.size(); ++i) {
+    for (size_t j = 0; j < off_start; ++j) {
+      stft_matrix.at(i).at(j) = fft_pre.at(i).at(j);
+    }
+  }
+
+  // Copy fft_post into stft_matrix at the end
+  if (off_end > 0) {
+    size_t stft_cols = stft_matrix.at(0).size();
+    for (size_t i = 0; i < stft_matrix.size(); ++i) {
+      for (size_t j = 0; j < off_end; ++j) {
+        stft_matrix.at(i).at(stft_cols - off_end + j) = fft_post.at(i).at(j);
+      }
+    }
+  }
+
+  return {stft_matrix, off_start};
 }
 
 template <floating_point T>
@@ -301,18 +344,18 @@ auto Spectrogram<T>::pad(const vector<T> &data,
 
   // auto pad_reflect = [&](const vector<T> &src, vector<T> &dest,
   //                        int64_t left_pad, int64_t right_pad) {
-  //   std::reverse_copy(src.begin(), src.begin() + left_pad, dest.begin());
-  //   std::copy(src.begin(), src.end(), dest.begin() + left_pad);
-  //   std::reverse_copy(src.end() - right_pad, src.end(), dest.end() -
-  //   right_pad);
+  //   std::reverse_copy(src.begin(), src.begin() + left_pad,
+  //   dest.begin()); std::copy(src.begin(), src.end(), dest.begin() +
+  //   left_pad); std::reverse_copy(src.end() - right_pad, src.end(),
+  //   dest.end() - right_pad);
   // };
   //
   // auto pad_symmetric = [&](const vector<T> &src, vector<T> &dest,
   //                          int64_t left_pad, int64_t right_pad) {
-  //   std::copy(src.begin() + 1, src.begin() + 1 + left_pad, dest.begin());
-  //   std::copy(src.begin(), src.end(), dest.begin() + left_pad);
-  //   std::copy(src.end() - right_pad - 1, src.end() - 1, dest.end() -
-  //   right_pad);
+  //   std::copy(src.begin() + 1, src.begin() + 1 + left_pad,
+  //   dest.begin()); std::copy(src.begin(), src.end(), dest.begin() +
+  //   left_pad); std::copy(src.end() - right_pad - 1, src.end() - 1,
+  //   dest.end() - right_pad);
   // };
 
   switch (padding_mode) {
@@ -380,7 +423,8 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
     throw std::runtime_error("n_fft is to large for audio input");
   }
 
-  // Set up the padding array to be empty, and we'll fix the target dimension
+  // Set up the padding array to be empty, and we'll fix the target
+  // dimension
 
   pair<size_t, size_t> padding;
 
@@ -406,8 +450,8 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
     padding = {n_fft / 2, n_fft / 2};
     audiodata = pad(audiodata, padding, padding_mode);
   } else {
-    // If tail and head do not overlap, then we can implement padding on each
-    // part separately # and avoid a full copy-pad
+    // If tail and head do not overlap, then we can implement padding on
+    // each part separately # and avoid a full copy-pad
 
     // "Middle" of the signal starts here, and does not depend on head
     start = start_k * effective_hop_length - n_fft / 2;
@@ -454,9 +498,9 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
       extra += audiodata_frames_post.size();
     } else {
 
-      // In this event, the first frame that touches tail padding would run
-      // off the end of the padded array We'll circumvent this by allocating
-      // an empty frame buffer for the tail
+      // In this event, the first frame that touches tail padding would
+      // run off the end of the padded array We'll circumvent this by
+      // allocating an empty frame buffer for the tail
       //  this keeps the subsequent logic simple
 
       pair<size_t, size_t> post_shape = {audiodata_frames_pre.size(), 0};
@@ -484,15 +528,19 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
   size_t off_start = 0;
   if (center && extra > 0) {
 
-    stft_matrix = padding_stft(stft_matrix, audiodata_frames_pre,
-                               audiodata_frames_post, fft_window);
+    auto pad_stft = padding_stft(stft_matrix, audiodata_frames_pre,
+                                 audiodata_frames_post, fft_window);
+    stft_matrix = pad_stft.first;
+    off_start = pad_stft.second;
   }
   // maximize the columns per block
   auto n_columns = MAX_MEM_BLOCK / (audiodata_frames.size() * sizeof(T));
 
   // Process the main audiodata with a block-based sliding window
-  stft_matrix = block_wise_stft(stft_matrix, audiodata_frames, fft_window,
-                                n_columns, off_start);
+  auto block_stft = block_wise_stft(stft_matrix, audiodata_frames, fft_window,
+                                    n_columns, off_start);
+  stft_matrix = block_stft.first;
+  off_start = block_stft.second;
   m_spectrogram = compute_abs(stft_matrix);
 }
 

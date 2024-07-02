@@ -306,15 +306,19 @@ def stft(
     stft_matrix = np.zeros(shape, dtype=dtype, order="F")
 
     # Fill in the warm-upw
+    fft_pre = np.fft.rfft(fft_window * y_frames_pre, axis=-2)
+    fft_post = np.fft.rfft(fft_window * y_frames_post, axis=-2)
+
+    print("fft out", fft_pre.shape)
+    print("fft t", fft_pre.dtype)
+
     if center and extra > 0:
         off_start = y_frames_pre.shape[-1]
-        stft_matrix[..., :off_start] = np.fft.rfft(fft_window * y_frames_pre, axis=-2)
+        stft_matrix[..., :off_start] = fft_pre
 
         off_end = y_frames_post.shape[-1]
         if off_end > 0:
-            stft_matrix[..., -off_end:] = np.fft.rfft(
-                fft_window * y_frames_post, axis=-2
-            )
+            stft_matrix[..., -off_end:] = fft_post
     else:
         off_start = 0
 

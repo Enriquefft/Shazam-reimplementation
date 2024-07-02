@@ -51,17 +51,22 @@ private:
   auto
   compute_abs(const std::vector<std::vector<std::complex<T>>> &complex_matrix)
       -> std::vector<std::vector<T>>;
+  static auto multiply(const std::vector<T> &array_1d,
+                       const std::vector<std::vector<T>> &array_2d)
+      -> std::vector<std::vector<T>>;
 
   static auto
   block_wise_stft(std::vector<std::vector<std::complex<T>>> &stft_matrix,
                   const std::vector<std::vector<T>> &audiodata_frames,
                   const std::vector<T> &fft_window, const auto &n_columns,
-                  const size_t &off_start);
+                  const size_t &off_start)
+      -> std::pair<std::vector<std::vector<std::complex<T>>>, size_t>;
   static auto
   padding_stft(std::vector<std::vector<std::complex<T>>> &stft_matrix,
                const std::vector<std::vector<T>> &audiodata_frames_pre,
                const std::vector<std::vector<T>> &audiodata_frames_post,
-               const std::vector<T> &fft_window);
+               const std::vector<T> &fft_window)
+      -> std::pair<std::vector<std::vector<std::complex<T>>>, size_t>;
 
   /// @brief Create an empty 2D matrix with the same dimensions.
   /// @param dimensions Dimensions of the matrix.
