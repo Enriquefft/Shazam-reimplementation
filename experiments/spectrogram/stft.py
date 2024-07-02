@@ -305,6 +305,7 @@ def stft(
 
     stft_matrix = np.zeros(shape, dtype=dtype, order="F")
 
+    # Fill in the warm-upw
     if center and extra > 0:
         off_start = y_frames_pre.shape[-1]
         stft_matrix[..., :off_start] = np.fft.rfft(fft_window * y_frames_pre, axis=-2)

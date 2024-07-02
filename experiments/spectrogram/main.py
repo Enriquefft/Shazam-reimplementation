@@ -16,7 +16,7 @@ def plot(s, n):
     fig.colorbar(img, ax=ax, format="%+2.0f dB")
     fig.savefig(str(n))
 
-=======
+
 filename = "../../assets/3. You & Me - Good & Evil.wav"
 
 
