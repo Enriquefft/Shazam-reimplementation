@@ -60,7 +60,7 @@ jobs:
           sudo ./llvm.sh 17
           
       - name: Install gcc-13 on ubuntu-20
-        if: matrix.os == 'ubuntu-20.04' && matrix.c_compiler == 'gcc-13'
+        if: matrix.os == 'ubuntu-20.04'
         run: |
           sudo apt-get update
           sudo apt-get upgrade
