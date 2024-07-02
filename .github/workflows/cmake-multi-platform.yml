@@ -62,7 +62,9 @@ jobs:
       - name: Install gcc-13 on ubuntu-20
         if: matrix.os == 'ubuntu-20.04' && matrix.c_compiler == 'gcc-13'
         run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
+          sudo apt update
+          sudo apt upgrade
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa -y
           sudo apt update
           sudo apt upgrade
           sudo apt install gcc-13 g++-13
