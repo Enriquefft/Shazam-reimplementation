@@ -64,10 +64,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get upgrade
-          sudo add-apt-repository ppa:Use Control + Shift + m to toggle the tab key moving focus. Alternatively, use esc then tab to move to the next interactive element on the page.ubuntu-toolchain-r/ppa -y
+          sudo apt install software-properties-common      
+
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa -y
           sudo apt-get update
           sudo apt-get upgrade
-          sudo apt-getUse Control + Shift + m to toggle the tab key moving focus. Alternatively, use esc then tab to move to the next interactive element on the page. install gcc-13 g++-13
+          sudo apt-get install gcc-13 g++-13
 
       - name: set default gcc version
         if: matrix.c_compiler == 'gcc-13'
