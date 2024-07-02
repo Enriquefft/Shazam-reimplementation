@@ -2,7 +2,9 @@
 #include <algorithm>
 #include <cmath>
 #include <format>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include <numbers>
 #include <numeric>
@@ -136,6 +138,54 @@ Spectrogram<T>::Spectrogram(const Audio<T> &audio)
     : m_spectrogram({}), m_features({}) {
 
   stft(audio);
+}
+
+template <floating_point T> Spectrogram<T>::Spectrogram(std::string fname) {
+  size_t width, height;
+
+  std::string s;
+  std::ifstream csv(fname);
+  if (!csv.is_open()) {
+    std::cerr << "Error opening spectrogram.csv" << std::endl;
+    return;
+  }
+
+  // Read dimensions from the first line
+  getline(csv, s);
+  std::stringstream dim_ss(s);
+  char delimiter;
+  dim_ss >> width >> delimiter >> height;
+
+  // Resize the spectrogram matrix
+  m_spectrogram.resize(height, std::vector<intensity_t>(width, 0));
+
+  // Read spectrogram data from the rest of the file
+  for (size_t i = 0; i < height; ++i) {
+    if (!getline(csv, s)) {
+      std::cerr << "Error: Insufficient data in spectrogram.csv" << std::endl;
+      return;
+    }
+    std::stringstream line_ss(s);
+    for (size_t j = 0; j < width; ++j) {
+      std::string intensity_str;
+      if (!getline(line_ss, intensity_str, ',')) {
+        std::cerr << "Error: Insufficient data in row " << i + 1 << std::endl;
+        return;
+      }
+      try {
+        m_spectrogram[i][j] =
+            static_cast<intensity_t>(std::stoi(intensity_str));
+      } catch (const std::invalid_argument &e) {
+        std::cerr << "Invalid argument: " << e.what() << std::endl;
+        return;
+      } catch (const std::out_of_range &e) {
+        std::cerr << "Out of range error: " << e.what() << std::endl;
+        return;
+      }
+    }
+  }
+
+  csv.close();
 }
 
 template <floating_point T>

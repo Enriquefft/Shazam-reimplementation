@@ -1,14 +1,15 @@
-#include "AudioFile.hpp"
-#include "Spectrogram.hpp"
+#include "Spotify.hpp"
+#include <Spectrogram.hpp>
 #include <iostream>
-#include <ranges>
 #include <spdlog/spdlog.h>
 
 auto main() -> int {
+  std::string s;
+  // std::cin >> s;
 
-  Audio<double> audio("assets/3. You & Me - Good & Evil.wav");
-
-  Spectrogram spectrogram(audio);
-
-  auto spec = spectrogram.get_spectrogram();
+  Spectrogram<float> sp("assets/noisy.csv");
+  sp.get_local_maximums();
+  // std::cout << "Local Maxima found (processed " << sp.getX() << ','<<
+  // sp.getY() <<") pixels" << std::endl;
+  return 0;
 }
