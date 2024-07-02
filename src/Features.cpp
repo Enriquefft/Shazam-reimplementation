@@ -1,6 +1,7 @@
 #include "Spectrogram.hpp"
 #include <algorithm>
 #include <deque>
+#include <concepts>
 #include <sndfile.h>
 #include <stdexcept>
 
@@ -11,12 +12,14 @@ using std::vector;
 
 template <typename T> using matrix_t = vector<vector<T>>;
 
-template <floating_point T> size_t Spectrogram<T>::getX() {
+template <floating_point T> 
+size_t Spectrogram<T>::getX() {
   // get dimensions of spectrogram
   return m_spectrogram.size();
 }
 
-template <floating_point T> size_t Spectrogram<T>::getY() {
+template <floating_point T> 
+size_t Spectrogram<T>::getY() {
   size_t sp_x = m_spectrogram.size();
   return sp_x > 0 ? m_spectrogram[0].size() : 0;
 }
@@ -39,8 +42,8 @@ inline bool Spectrogram<T>::is_max_in_neigh(size_t X, size_t Y, size_t x,
       //  is not the same point
       if (x == i && y == j)
         continue;
-      if (std::max(0.0f, sp[i][j] - thrsh) + __FLT_EPSILON__ >=
-          std::max(0.0f, sp[x][y] - thrsh))
+      if (std::max(T(0), sp[i][j] - thrsh) + __FLT_EPSILON__ >=
+          std::max(T(0), sp[x][y] - thrsh))
         return false;
     }
   }
@@ -220,7 +223,7 @@ auto Spectrogram<T>::maxima_MINLIST_algorithm_optimized(int neigh)
   for (size_t i = 0; i < sp_x; i++) {
     for (size_t j = 0; j < sp_y; j++) {
       if (peak_filter_MINLIST(maxf_sp[i][j], m_spectrogram[i][j]))
-        dat.push_back(DataPoint{(int)i, (int)j, m_spectrogram[i][j]});
+        dat.push_back(DataPoint{(hertz_t)i, (time_t)j, m_spectrogram[i][j]});
     }
   }
 
@@ -258,7 +261,7 @@ auto Spectrogram<T>::maxima_MINLISTGCN_algorithm(int maxfilter_s, int gtn_s,
     for (size_t j = 0; j < sp_y; j++) {
       if (peak_filter_MINLIST_GTN(i, j, maxf_sp, m_spectrogram, sp_x, sp_y,
                                   gtn_s, avg_loudness * thresh))
-        dat.push_back(DataPoint{(int)i, (int)j, m_spectrogram[i][j]});
+        dat.push_back(DataPoint{(hertz_t)i, (time_t)j, m_spectrogram[i][j]});
     }
   }
 
@@ -295,3 +298,7 @@ auto Spectrogram<T>::maxima_GTN_algorithm(int neighbourhood, float thrsh)
     }
   return dat;
 }
+
+// Explicit instantiation
+template class Spectrogram<float>;
+template class Spectrogram<double>;

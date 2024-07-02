@@ -2,14 +2,12 @@
 #include <Spectrogram.hpp>
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include <AudioFile.hpp>
 
 auto main() -> int {
   std::string s;
-  // std::cin >> s;
-
-  Spectrogram<float> sp("assets/noisy.csv");
+  Audio<float> a("assets/the_bidding.wav");
+  Spectrogram<float> sp(a);
   sp.get_local_maximums();
-  // std::cout << "Local Maxima found (processed " << sp.getX() << ','<<
-  // sp.getY() <<") pixels" << std::endl;
   return 0;
 }
