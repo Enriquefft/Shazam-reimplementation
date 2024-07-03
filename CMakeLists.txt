@@ -110,6 +110,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${SNDFILE_LIBRARIES})
 # SpdLog
 find_package(spdlog QUIET)
 if(spdlog_FOUND)
+  message(STATUS "SpdLog found , using system version")
   target_link_libraries(${PROJECT_NAME} PUBLIC spdlog)
 else() # Only use this if spdlog is not installed on your system
   message(STATUS "SpdLog not found, using bundled version")

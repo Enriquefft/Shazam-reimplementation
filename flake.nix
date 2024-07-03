@@ -30,7 +30,7 @@
           libopus
           libmpg123
 
-          # spdlog
+          spdlog
 
           nlohmann_json
 
