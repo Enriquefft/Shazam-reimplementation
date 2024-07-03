@@ -29,7 +29,13 @@ auto Spectrogram<T>::block_wise_stft(matrix_t<std::complex<T>> &stft_matrix,
 
   size_t y_frames_cols = audiodata_frames[0].size();
 
+  print("block count: {}", y_frames_cols / n_columns);
+
   for (size_t bl_s = 0; bl_s < y_frames_cols; bl_s += n_columns) {
+
+    if (bl_s % n_columns * 3 == 0) {
+      print("block n{}", bl_s / n_columns);
+    }
 
     size_t bl_t = std::min(bl_s + n_columns, y_frames_cols);
 
@@ -449,6 +455,7 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
 
     auto pad_stft = padding_stft(stft_matrix, audiodata_frames_pre,
                                  audiodata_frames_post, expanded_fft_window);
+    print("finished padding stft");
     stft_matrix = pad_stft.first;
     off_start = pad_stft.second;
   }
@@ -459,6 +466,7 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
   // Process the main audiodata with a block-based sliding window
   auto block_stft = block_wise_stft(stft_matrix, audiodata_frames,
                                     expanded_fft_window, n_columns, off_start);
+  print("finished block stft");
   stft_matrix = block_stft.first;
   off_start = block_stft.second;
   m_spectrogram = abs(stft_matrix);

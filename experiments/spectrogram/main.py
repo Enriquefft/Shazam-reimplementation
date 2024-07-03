@@ -17,11 +17,15 @@ def plot(s, n):
     fig.savefig(str(n))
 
 
-filename = "../../assets/3. You & Me - Good & Evil.wav"
+filename = "../../assets/the_bidding.wav"
 
 
 y, sr = load(filename, sr=None, dtype="float64")
-s = stft(y)
+s = lib_stft(y)
+print(s.shape)
+print(s.sum())
+print(np.abs(s).sum())
+
 s_default = lib_stft(y)
 
 # plot(s, 1)
