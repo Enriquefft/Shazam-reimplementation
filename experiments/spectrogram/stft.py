@@ -210,12 +210,16 @@ def stft(
 
     # fft_window = get_window(window, win_length, fftbins=True)
     fft_window = utils.hann(win_length)
+    print("fft_window 1", fft_window.shape, fft_window.sum())
 
     # Pad the window out to n_fft size
     fft_window = utils.pad_center(fft_window, size=n_fft)
+    print("fft_window 1", fft_window.shape, fft_window.sum())
 
     # Reshape so that the window can be broadcast
     fft_window = utils.expand_to(fft_window, ndim=1 + y.ndim)
+
+    print("fft_window 1", fft_window.shape, fft_window.sum())
 
     if n_fft > y.shape[-1]:
         print("WARNING")
@@ -228,6 +232,7 @@ def stft(
     start_k = int(np.ceil(n_fft // 2 / hop_length))
 
     # What's the first frame that depends on extra right-padding?
+
     tail_k = (y.shape[-1] + n_fft // 2 - n_fft) // hop_length + 1
 
     if tail_k <= start_k:
@@ -254,13 +259,6 @@ def stft(
 
         y_frames_pre = utils.frame2(y_pre, frame_length=n_fft, hop_length=hop_length)
 
-        print(
-            "audiodata_frames_pre: ",
-            len(y_frames_pre),
-            len(y_frames_pre[0]),
-            y_frames_pre.sum(),
-        )
-
         # Trim this down to the exact number of frames we should have
         y_frames_pre = y_frames_pre[..., :start_k]
 
@@ -271,12 +269,16 @@ def stft(
         if tail_k * hop_length - n_fft // 2 + n_fft <= y.shape[-1] + n_fft // 2:
             padding[-1] = (0, n_fft // 2)
 
-            y_post = np.pad(
-                y[..., (tail_k) * hop_length - n_fft // 2 :], padding, mode=pad_mode
-            )
+            y_post_idx = (tail_k) * hop_length - n_fft // 2
+
+            y_post_trimmed = y[..., y_post_idx:]
+
+            y_post = np.pad(y_post_trimmed, padding, mode=pad_mode)
+
             y_frames_post = utils.frame2(
                 y_post, frame_length=n_fft, hop_length=hop_length
             )
+
             # How many extra frames do we have from the tail?
             extra += y_frames_post.shape[-1]
         else:
@@ -309,8 +311,18 @@ def stft(
     fft_pre = np.fft.rfft(fft_window * y_frames_pre, axis=-2)
     fft_post = np.fft.rfft(fft_window * y_frames_post, axis=-2)
 
-    print("fft out", fft_pre.shape)
-    print("fft t", fft_pre.dtype)
+    print("fft_pre: ", fft_pre.shape, fft_pre.sum())
+    print(
+        "fft_pre_data: ",
+        (fft_window * y_frames_pre).shape,
+        (fft_window * y_frames_pre).sum(),
+    )
+    print("fft_post: ", fft_post.shape, fft_post.sum())
+    print(
+        "fft_post_data: ",
+        (fft_window * y_frames_post).shape,
+        (fft_window * y_frames_post).sum(),
+    )
 
     if center and extra > 0:
         off_start = y_frames_pre.shape[-1]

@@ -7,151 +7,73 @@
 #include <sstream>
 
 #include <numbers>
-#include <numeric>
 #include <stdexcept>
-#include <string_view>
 
 #include "AudioFile.hpp"
 #include "fft.hpp"
+#include "utils.hpp"
 
 using std::floating_point;
 using std::pair;
 using std::vector;
 
-template <typename T> using matrix_t = vector<vector<T>>;
-
-/// @brief constexpr binary exponentiation
-constexpr auto binpow(int64_t base, uint64_t exponent) -> int64_t {
-  int64_t res = 1;
-  while (exponent > 0) {
-    if ((exponent & 1UL) != 0) {
-      res = res * base;
-    }
-    base = base * base;
-    exponent >>= 1UL;
-  }
-  return res;
-}
-
 constexpr auto MAX_MEM_BLOCK = binpow(2, 8) * binpow(2, 10);
-
-template <floating_point T>
-auto Spectrogram<T>::compute_abs(
-    const std::vector<std::vector<std::complex<T>>> &complex_matrix)
-    -> std::vector<std::vector<T>> {
-
-  std::vector<std::vector<T>> abs_matrix(
-      complex_matrix.size(), std::vector<T>(complex_matrix.at(0).size()));
-
-  for (size_t i = 0; i < complex_matrix.size(); ++i) {
-    for (size_t j = 0; j < complex_matrix.at(i).size(); ++j) {
-      abs_matrix.at(i).at(j) = std::abs(complex_matrix.at(i).at(j));
-    }
-  }
-
-  return abs_matrix;
-}
-
-template <floating_point T>
-constexpr auto printable_complex(const std::complex<T> &num) -> std::string {
-  return std::format("({}, {})", std::real(num), std::imag(num));
-}
-
-// Function to sum elements in a vector<T>
-template <typename T> constexpr auto sum_vector(const vector<T> &vec) -> T {
-  return std::accumulate(vec.begin(), vec.end(), T{});
-}
-
-// Function to sum elements in a vector<vector<T>>
-template <typename T> constexpr auto sum_vector(const matrix_t<T> &vec) -> T {
-  T total_sum = T{};
-  for (const auto &sub_vec : vec) {
-    total_sum += sum_vector(sub_vec);
-  }
-  return total_sum;
-}
-
-template <typename T> struct IsComplexT : public std::false_type {};
-template <typename T>
-struct IsComplexT<std::complex<T>> : public std::true_type {};
-template <typename T> constexpr auto is_complex() -> bool {
-  return IsComplexT<T>::value;
-}
-
-template <typename... Args> void print(std::string_view fmt, Args &&...args) {
-  std::cout << std::vformat(fmt, std::make_format_args(args...)) << std::endl;
-}
-
-template <typename T>
-constexpr void vector_info(const vector<T> &vec, const std::string &name) {
-  if constexpr (is_complex<T>()) {
-    print("{} info:\tsize: {}, sum: {}", name, vec.size(),
-          printable_complex(sum_vector(vec)));
-  } else {
-    print("{} info:\tsize: {}, sum: {}", name, vec.size(), sum_vector(vec));
-  }
-}
-
-template <typename T>
-constexpr void vector_info(const matrix_t<T> &vec, const std::string &name) {
-
-  if constexpr (is_complex<T>()) {
-    print("{} info:\tsize: {}, size.at(0): {}, sum: {}", name, vec.size(),
-          vec.at(0).size(), printable_complex(sum_vector(vec)));
-  } else {
-
-    print("{} info:\tsize: {}, size.at(0): {}, sum: {}", name, vec.size(),
-          vec.at(0).size(), sum_vector(vec));
-  }
-}
-
-template <typename T>
-auto multiply(const std::vector<T> &array_1d,
-              const std::vector<std::vector<T>> &array_2d)
-    -> std::vector<vector<T>> {
-  // Get the dimensions of the input arrays
-  size_t rows = array_2d.size();
-  size_t cols = array_2d[0].size();
-
-  // Initialize the result array with the same dimensions as array_2d
-  std::vector<std::vector<T>> result(rows, std::vector<T>(cols));
-
-  // Perform the element-wise multiplication
-  for (size_t i = 0; i < rows; ++i) {
-    for (size_t j = 0; j < cols; ++j) {
-      result[i][j] = array_1d[i] * array_2d[i][j];
-    }
-  }
-
-  return result;
-}
 
 template <floating_point T>
 auto Spectrogram<T>::block_wise_stft(matrix_t<std::complex<T>> &stft_matrix,
                                      const matrix_t<T> &audiodata_frames,
-                                     const vector<T> &fft_window,
+                                     const matrix_t<T> &fft_window,
                                      const auto &n_columns,
                                      const size_t &off_start)
     -> pair<matrix_t<std::complex<T>>, size_t> {
 
-  // TODO(enrique): implement block_wise_stft
-  print("Calling block_wise_stft with: {}, {}, {}, {}, {}", stft_matrix.size(),
-        audiodata_frames.size(), audiodata_frames.size(), fft_window.size(),
-        n_columns, off_start);
-  return {stft_matrix, 0};
+  size_t y_frames_cols = audiodata_frames[0].size();
+
+  for (size_t bl_s = 0; bl_s < y_frames_cols; bl_s += n_columns) {
+
+    size_t bl_t = std::min(bl_s + n_columns, y_frames_cols);
+
+    matrix_t<T> block_frames(audiodata_frames.size(),
+                             std::vector<T>(bl_t - bl_s));
+    for (size_t i = 0; i < audiodata_frames.size(); ++i) {
+      std::copy(audiodata_frames.at(i).begin() + static_cast<int64_t>(bl_s),
+                audiodata_frames.at(i).begin() + static_cast<int64_t>(bl_t),
+                block_frames.at(i).begin());
+    }
+
+    auto fft_result = row_dft(multiply(fft_window, block_frames));
+
+    for (size_t i = 0; i < stft_matrix.size(); ++i) {
+      for (size_t j = 0; j < fft_result[i].size(); ++j) {
+        stft_matrix[i][bl_s + off_start + j] = fft_result[i][j];
+      }
+    }
+  }
+
+  return {stft_matrix, off_start};
 }
 
 template <floating_point T>
 auto Spectrogram<T>::padding_stft(matrix_t<std::complex<T>> &stft_matrix,
                                   const matrix_t<T> &audiodata_frames_pre,
                                   const matrix_t<T> &audiodata_frames_post,
-                                  const vector<T> &fft_window)
+                                  const matrix_t<T> &fft_window)
     -> pair<matrix_t<std::complex<T>>, size_t> {
 
+  vector_info(fft_window, "fft_window");
+  vector_info(audiodata_frames_pre, "audiodata_frames_pre");
+  vector_info(audiodata_frames_post, "audiodata_frames_post");
+
   vector<vector<std::complex<T>>> fft_pre =
-      compute_dft(multiply(fft_window, audiodata_frames_pre));
+      row_dft(multiply(fft_window, audiodata_frames_pre));
+
   vector<vector<std::complex<T>>> fft_post =
-      compute_dft(multiply(fft_window, audiodata_frames_post));
+      row_dft(multiply(fft_window, audiodata_frames_post));
+
+  vector_info(fft_pre, "fft_pre");
+  vector_info(multiply(fft_window, audiodata_frames_pre), "fft_pre_data");
+  vector_info(fft_post, "fft_post");
+  vector_info(multiply(fft_window, audiodata_frames_post), "fft_post_data");
 
   size_t off_start = audiodata_frames_pre.at(0).size();
   size_t off_end = audiodata_frames_post.at(0).size();
@@ -309,17 +231,18 @@ auto Spectrogram<T>::hann(size_t n_points) -> vector<T> {
     return {};
   }
 
-  auto window_length = n_points + 1;
+  auto window_length = n_points;
 
   vector<T> window;
   window.reserve(window_length);
 
-  for (size_t win_elem = 0; win_elem < window_length; ++win_elem) {
+  for (size_t win_elem = 0; win_elem < window_length; win_elem++) {
 
-    window.push_back(
-        (1 / 2) *
+    auto win_value =
+        T(.5) *
         (1 - std::cos(2 * static_cast<T>(std::numbers::pi) *
-                      static_cast<T>(win_elem) / static_cast<T>(n_points))));
+                      static_cast<T>(win_elem) / static_cast<T>(n_points - 1)));
+    window.push_back(win_value);
   }
 
   return window;
@@ -391,11 +314,11 @@ auto Spectrogram<T>::expand_to(const vector<T> &data,
     throw std::invalid_argument("ndim must be at least 2 for this example.");
   }
 
-  matrix_t<T> expanded(target_dim - 1, vector<T>(data.size(), T()));
+  matrix_t<T> expanded(data.size(), vector<T>(target_dim - 1, T()));
 
   // Copy the original data to the expanded vector
   for (size_t i = 0; i < data.size(); ++i) {
-    expanded.at(0).at(i) = data.at(i);
+    expanded.at(i).at(target_dim - 2) = data.at(i);
   }
 
   return expanded;
@@ -410,7 +333,9 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
 
   auto effectve_window_length = window_length.value_or(n_fft);
   auto effective_hop_length = hop_length.value_or(effectve_window_length / 4);
+
   auto fft_window = get_window(window, n_fft);
+
   auto audiodata = audio.m_audiodata;
 
   // Pad the window out to n_fft size
@@ -436,7 +361,7 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
   // What's the first frame that depends on extra right-padding?
 
   auto tail_k =
-      (audiodata.size() + n_fft / 2 - n_fft) / (effective_hop_length + 1);
+      (audiodata.size() + n_fft / 2 - n_fft) / effective_hop_length + 1;
 
   size_t start = 0;
   size_t extra = 0;
@@ -451,7 +376,7 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
     audiodata = pad(audiodata, padding, padding_mode);
   } else {
     // If tail and head do not overlap, then we can implement padding on
-    // each part separately # and avoid a full copy-pad
+    // each part separately and avoid a full copy-pad
 
     // "Middle" of the signal starts here, and does not depend on head
     start = start_k * effective_hop_length - n_fft / 2;
@@ -471,31 +396,30 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
 
     audiodata_frames_pre = frame(audiodata_pre, n_fft, effective_hop_length);
 
-    vector_info(audiodata_frames_pre, "audiodata_frames_pre");
+    // Trim this down to the exact number of frames we should have
+    slice_cols(audiodata_frames_pre, start_k);
 
-    // # Trim this down to the exact number of frames we should have
-    audiodata_frames_pre =
-        vector(audiodata_frames_pre.begin(),
-               audiodata_frames_pre.begin() + static_cast<int64_t>(start_k));
-
-    extra = audiodata_frames_pre.size();
+    extra = audiodata_frames_pre.at(0).size();
 
     // Determine if we have any frames that will fit inside the tail pad
     if (tail_k * effective_hop_length - n_fft / 2 + n_fft <=
         audiodata.size() + n_fft / 2) {
 
-      auto audiodata_post_idx = tail_k * effective_hop_length - n_fft / 2;
+      auto audiodata_post_idx =
+          static_cast<int64_t>(tail_k * effective_hop_length - n_fft / 2);
 
-      auto audiodata_post = pad(
-          vector(audiodata.begin(),
-                 audiodata.begin() + static_cast<int64_t>(audiodata_post_idx)),
-          padding, padding_mode);
+      auto audiodata_trimmed_post = audiodata;
+      audiodata_trimmed_post.erase(audiodata_trimmed_post.begin(),
+                                   audiodata_trimmed_post.begin() +
+                                       audiodata_post_idx);
+
+      auto audiodata_post = pad(audiodata_trimmed_post, padding, padding_mode);
 
       audiodata_frames_post =
           frame(audiodata_post, n_fft, effective_hop_length);
 
       // How many extra frames do we have from the tail?
-      extra += audiodata_frames_post.size();
+      extra += audiodata_frames_post.at(0).size();
     } else {
 
       // In this event, the first frame that touches tail padding would
@@ -513,35 +437,33 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
       vector(audiodata.begin() + static_cast<int64_t>(start), audiodata.end()),
       n_fft, effective_hop_length);
 
-  pair<size_t, size_t> shape = {1 + n_fft / 2, extra};
+  pair<size_t, size_t> shape = {1 + n_fft / 2,
+                                extra + audiodata_frames.at(0).size()};
+
   matrix_t<std::complex<T>> stft_matrix =
       generate_matrix<std::complex<T>>(shape);
-
-  print("all variables so far\n");
-  vector_info(stft_matrix, "stft_matrix");
-  vector_info(audiodata_frames_pre, "audiodata_frames_pre");
-  vector_info(audiodata_frames_post, "audiodata_frames_post");
-  vector_info(fft_window, "fft_window");
-  vector_info(audiodata_frames, "audiodata_frames");
 
   // Proccesss the extra padding frames with fft if needed
   size_t off_start = 0;
   if (center && extra > 0) {
 
     auto pad_stft = padding_stft(stft_matrix, audiodata_frames_pre,
-                                 audiodata_frames_post, fft_window);
+                                 audiodata_frames_post, expanded_fft_window);
     stft_matrix = pad_stft.first;
     off_start = pad_stft.second;
   }
+
   // maximize the columns per block
   auto n_columns = MAX_MEM_BLOCK / (audiodata_frames.size() * sizeof(T));
 
   // Process the main audiodata with a block-based sliding window
-  auto block_stft = block_wise_stft(stft_matrix, audiodata_frames, fft_window,
-                                    n_columns, off_start);
+  auto block_stft = block_wise_stft(stft_matrix, audiodata_frames,
+                                    expanded_fft_window, n_columns, off_start);
   stft_matrix = block_stft.first;
   off_start = block_stft.second;
-  m_spectrogram = compute_abs(stft_matrix);
+  m_spectrogram = abs(stft_matrix);
+
+  vector_info(m_spectrogram, "spectrogram");
 }
 
 // Explicit instantiation

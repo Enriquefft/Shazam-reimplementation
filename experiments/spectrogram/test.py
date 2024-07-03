@@ -1,15 +1,40 @@
 import numpy as np
 
+import math
+
+
+from random import randint
+
+arr1 = np.ones((5, 1))
+mat1 = np.ones((5, 2)) * randint(10, 20)
+
+print(arr1)
+print(mat1)
+
+print(arr1 * mat1)
+
+
 # Define a 2D array and a 1D array
-array_1d = np.array([[10], [20], [30]])
+# matrix1 = np.array([[1, 2, 3, 4], [4, 3, 2, 1]])
+# matrix1 = np.array([[0, 0, 0, 0], [0, 0, 0, 0]])
+# matrix1 = np.array([[1, -1, 1, -1]])
+# matrix1 = np.array([[1], [-1], [1], [-1]])
+#
+# result1 = np.fft.rfft(matrix1, axis=-2rr
+# print(result1)
+#
+#
+# mat2 = np.transpose(matrix1)
+# result2 = np.zeros((1, 3), dtype="complex128")
+# print("shape", mat2.shape, mat2.size)
+# for idx, row in enumerate(mat2):
+#     new = np.fft.rfft(row)
+#     print("row", new)
+#     result2[idx] = new
+#
+# print(np.transpose(result2))
+#
+#
+# print(np.transpose(np.fft.rfft(np.transpose(matrix1))))
 
-array_2d = np.array([[1, 2], [4, 5], [9, 8]])
-
-# Multiply the 2D array with the 1D array
-result = array_1d * array_2d
-dim1 = [10, 20, 80, 100, 270, 240]
-dim2 = [10, 80, 270]
-dim3 = [10, 20]
-
-matrix = np.zeros((2048, 2))
-result = np.fft.rfft(matrix, axis=-2)
+# Result 1:

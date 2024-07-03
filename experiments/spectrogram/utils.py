@@ -181,7 +181,8 @@ def frame2(x: np.ndarray, frame_length: int, hop_length: int) -> np.ndarray:
     num_frames = 1 + (x.shape[0] - frame_length) // hop_length
 
     # Initialize the output array
-    x_frames = np.empty((frame_length, num_frames), dtype=x.dtype)
+    x_frames_shape = (frame_length, num_frames)
+    x_frames = np.empty(x_frames_shape, dtype=x.dtype)
 
     # Populate the output array with frames
     for i in range(num_frames):
