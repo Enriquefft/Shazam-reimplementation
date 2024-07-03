@@ -143,8 +143,8 @@ constexpr auto multiply(const std::vector<std::vector<T>> &arr1,
                         const std::vector<std::vector<T>> &mat1)
     -> std::vector<std::vector<T>> {
 
-  std::vector<std::vector<double>> result(arr1.size(),
-                                          std::vector<double>(mat1[0].size()));
+  std::vector<std::vector<T>> result(arr1.size(),
+                                     std::vector<T>(mat1[0].size()));
 
   for (size_t i = 0; i < arr1.size(); ++i) {
     for (size_t j = 0; j < mat1[0].size(); ++j) {
@@ -154,9 +154,5 @@ constexpr auto multiply(const std::vector<std::vector<T>> &arr1,
 
   return result;
 }
-
-auto multiply(const std::vector<std::vector<float>> &array_1d,
-              const std::vector<std::vector<float>> &array_2d)
-    -> std::vector<std::vector<float>>;
 
 #endif // INCLUDE_UTILS_HPP_
