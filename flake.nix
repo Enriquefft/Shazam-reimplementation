@@ -14,12 +14,7 @@
 
       devShell = pkgs: {
 
-        stdenv = pkgs.llvmPackages_17.stdenv;
-
-        env = {
-          CC = "clang";
-          CXX = "clang++";
-        };
+        # stdenv = pkgs.llvmPackages_17.stdenv;
 
         packages = with pkgs; [
 
@@ -52,6 +47,14 @@
           gdb
 
           include-what-you-use
+
+          (pkgs.python3.withPackages (python-pkgs: [
+            # select Python packages here
+            python-pkgs.numpy
+            python-pkgs.librosa
+            python-pkgs.matplotlib
+            python-pkgs.scipy
+          ]))
 
         ];
 

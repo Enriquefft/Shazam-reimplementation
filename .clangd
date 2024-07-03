@@ -1,6 +1,6 @@
 CompileFlags:
   Add:
-    - "-Weverything"
+    # - "-Weverything"
 Diagnostics:
   ClangTidy:
     Add: [

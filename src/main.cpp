@@ -1,14 +1,13 @@
-#include "Spotify.hpp"
+#include <AudioFile.hpp>
+#include <Spectrogram.hpp>
 #include <iostream>
 #include <spdlog/spdlog.h>
 
 auto main() -> int {
-
-  spdlog::info("Hello world");
-  Spotify spot;
-  auto tracks = spot.get_track_names("3p6W0GFxrobpbCet8uQTYk");
-  for (const auto &track : tracks) {
-    std::cout << track << '\n';
-  }
+  Audio<float> a("assets/the_bidding.wav");
+  Spectrogram<float> sp(a);
+  sp.get_local_maximums();
+  std::cout << "Local Maxima found (processed " << sp.get_x() << ','
+            << sp.get_y() << ") pixels" << '\n';
   return 0;
 }
