@@ -2,7 +2,7 @@ import numpy as np
 from numpy.lib.stride_tricks import as_strided
 import sys
 
-from typing import Optional, Union, Any, Tuple, List, Sequence, Dict
+from typing import Optional, List, Dict
 from numpy.typing import DTypeLike, NDArray
 
 
@@ -181,13 +181,8 @@ def frame2(x: np.ndarray, frame_length: int, hop_length: int) -> np.ndarray:
     num_frames = 1 + (x.shape[0] - frame_length) // hop_length
 
     # Initialize the output array
-    x_frames = np.empty((frame_length, num_frames), dtype=x.dtype)
-
-    print("x", x.shape, x[0].shape, x.sum())
-    print("x_frames", x_frames.shape, x_frames[0].shape, x_frames.sum())
-    print("frame_length", frame_length)
-    print("hop_length", hop_length)
-    print("num_frames", num_frames)
+    x_frames_shape = (frame_length, num_frames)
+    x_frames = np.empty(x_frames_shape, dtype=x.dtype)
 
     # Populate the output array with frames
     for i in range(num_frames):

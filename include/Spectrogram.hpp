@@ -10,6 +10,7 @@
 #include <vector>
 
 template <std::floating_point T> class Audio;
+
 constexpr auto DEFAULT_NFFT = 2048;
 
 // Currently window type and padding mode are limited
@@ -47,20 +48,18 @@ private:
             const WINDOW_FUNCT &window = WINDOW_FUNCT::HANN, bool center = true,
             const PADDING_MODE &padding_mode = PADDING_MODE::CONSTANT);
 
-  auto
-  compute_abs(const std::vector<std::vector<std::complex<T>>> &complex_matrix)
-      -> std::vector<std::vector<T>>;
-
   static auto
   block_wise_stft(std::vector<std::vector<std::complex<T>>> &stft_matrix,
                   const std::vector<std::vector<T>> &audiodata_frames,
-                  const std::vector<T> &fft_window, const auto &n_columns,
-                  const size_t &off_start);
+                  const std::vector<std::vector<T>> &fft_window,
+                  const auto &n_columns, const size_t &off_start)
+      -> std::pair<std::vector<std::vector<std::complex<T>>>, size_t>;
   static auto
   padding_stft(std::vector<std::vector<std::complex<T>>> &stft_matrix,
                const std::vector<std::vector<T>> &audiodata_frames_pre,
                const std::vector<std::vector<T>> &audiodata_frames_post,
-               const std::vector<T> &fft_window);
+               const std::vector<std::vector<T>> &fft_window)
+      -> std::pair<std::vector<std::vector<std::complex<T>>>, size_t>;
 
   /// @brief Create an empty 2D matrix with the same dimensions.
   /// @param dimensions Dimensions of the matrix.

@@ -29,3 +29,4 @@ macro(package_add_test TESTNAME)
 endmacro()
 
 package_add_test(sampleTest sample.cpp)
+package_add_test(fftTest fft.cpp)

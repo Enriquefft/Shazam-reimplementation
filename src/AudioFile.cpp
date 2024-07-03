@@ -1,4 +1,5 @@
 #include "AudioFile.hpp"
+#include <filesystem>
 #include <sndfile.h>
 #include <stdexcept>
 
@@ -38,6 +39,8 @@ Audio<T>::Audio(const std::filesystem::path &path,
 
   sf_close(sound_file);
 }
+
+// Explicit instantiation
 
 template class Audio<float>;
 template class Audio<double>;

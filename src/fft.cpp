@@ -1,44 +1,39 @@
+#include "fft.hpp"
 #include <complex>
 #include <concepts>
 #include <numbers>
 #include <vector>
 
-using std::literals::operator""i;
+using std::complex;
+using std::vector;
+
+template <typename T> using matrix_t = vector<vector<T>>;
 
 template <std::floating_point T>
-auto dft(const std::vector<std::complex<T>> &input)
-    -> std::vector<std::complex<T>> {
-  const auto M_I_2PI_DL =
-      -(2i * std::numbers::pi / static_cast<T>(input.size()));
+auto compute_dft(const matrix_t<T> &matrix) -> vector<vector<complex<T>>> {
 
-  std::vector<std::complex<T>> output;
+  size_t rows = matrix.size();
+  size_t cols = matrix[0].size();
 
-  for (size_t k = 0; k < output.size(); ++k) {
-    output[k] = 0;
-    for (size_t n = 0; n < input.size(); ++n) {
-      output[k] +=
-          input[n] * pow(std::numbers::e,
-                         M_I_2PI_DL * static_cast<T>(k) * static_cast<T>(n));
+  matrix_t<complex<T>> result(rows, vector<complex<T>>(cols / 2 + 1));
+
+  for (size_t k = 0; k < rows; ++k) {
+    for (size_t n = 0; n <= cols / 2; ++n) {
+      complex<double> sum = 0;
+      for (size_t t = 0; t < cols; ++t) {
+
+        T angle = 2 * std::numbers::pi * n * t / cols;
+        sum += complex<double>(matrix[k][t] * cos(angle),
+                               -matrix[k][t] * sin(angle));
+      }
+      result[k][n] = sum;
     }
   }
-  return output;
+
+  return result;
 }
+// Explicit instantiation
 
-// Overloaded DFT function to handle a vector of vectors
-template <typename T>
-auto dft(const std::vector<std::vector<T>> &input)
-    -> std::vector<std::vector<std::complex<T>>> {
-
-  size_t num_rows = input.size();
-  size_t num_cols = input.at(0).size();
-
-  std::vector<std::vector<std::complex<T>>> output;
-  output.resize(num_rows, std::vector<std::complex<T>>(num_cols));
-
-  for (size_t i = 0; i < num_rows; ++i) {
-    std::vector<std::complex<T>> input_complex(input[i].begin(),
-                                               input[i].end());
-    dft(input_complex, output[i]);
-  }
-  return output;
-}
+template auto compute_dft(const matrix_t<float> &) -> matrix_t<complex<float>>;
+template auto compute_dft(const matrix_t<double> &)
+    -> matrix_t<complex<double>>;
