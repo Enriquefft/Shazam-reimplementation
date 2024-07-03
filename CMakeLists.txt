@@ -7,6 +7,7 @@ project(
   LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+set(CXX_STANDARD_REQUIRED on)
 
 if(${CMAKE_VERSION} VERSION_LESS "3.25.2")
   message(
@@ -19,7 +20,8 @@ endif()
 # Targets
 
 add_executable(${PROJECT_NAME} src/main.cpp)
-target_sources(${PROJECT_NAME} PRIVATE src/Spotify.cpp src/AudioFile.cpp)
+target_sources(${PROJECT_NAME} PRIVATE #[[ src/Spotify.cpp ]] src/AudioFile.cpp
+                                       src/Spectrogram.cpp src/Features.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE include/)
 
@@ -28,13 +30,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE include/)
 add_library(common INTERFACE)
 target_compile_features(common INTERFACE cxx_std_20)
 
-# TODO: add iwty required - currently not working on windows
-find_program(iwyu_path NAMES include-what-you-use iwyu)
-set_target_properties(
-  ${PROJECT_NAME}
-  PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path}
-             INTERPROCEDURAL_OPTIMIZATION TRUE
-             CXX_STANDARD 20)
+set_target_properties(${PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION
+                                                 TRUE CXX_STANDARD 20)
 
 target_compile_options(
   common
@@ -45,7 +42,7 @@ target_compile_options(
             $<$<CXX_COMPILER_ID:Clang>:-Weverything>
             $<$<CXX_COMPILER_ID:GCC>:-fconcepts-diagnostics-depth=3>
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
-            -Werror
+            # -Werror
             -Wall
             -Wextra
             -Wpedantic
@@ -94,7 +91,7 @@ target_link_options(
 
 # Threads needed in gcc
 set(THREADS_HAVE_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
+find_package(Threads REQUIRED QUIET)
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 
 # config
@@ -105,7 +102,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE common)
 include(FetchContent)
 
 # libsndfile
-find_package(PkgConfig REQUIRED)
+find_package(PkgConfig REQUIRED QUIET)
 pkg_check_modules(SNDFILE REQUIRED sndfile)
 target_include_directories(${PROJECT_NAME} PRIVATE ${SNDFILE_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${SNDFILE_LIBRARIES})
@@ -113,6 +110,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${SNDFILE_LIBRARIES})
 # SpdLog
 find_package(spdlog QUIET)
 if(spdlog_FOUND)
+  message(STATUS "SpdLog found , using system version")
   target_link_libraries(${PROJECT_NAME} PUBLIC spdlog)
 else() # Only use this if spdlog is not installed on your system
   message(STATUS "SpdLog not found, using bundled version")
@@ -127,7 +125,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE SPDLOG_USE_STD_FORMAT)
 FetchContent_Declare(
   json
   GIT_REPOSITORY https://github.com/nlohmann/json
-  GIT_TAG v3.11.3 SYSTEM)
+  GIT_TAG v3.11.3
+  SYSTEM)
 FetchContent_MakeAvailable(json)
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
