@@ -146,16 +146,17 @@ private:
       -> std::vector<DataPoint>;
 
   // ================================= HASH GENERATION
-  inline auto is_max_in_neigh(size_t X, size_t Y, size_t x, size_t y, int n,
-                              intensity_t thrsh, const spdata_t &sp) -> bool;
+  inline auto is_max_in_neigh(size_t x_max, size_t y_max, size_t x, size_t y,
+                              int n, intensity_t thrsh, const spdata_t &sp)
+      -> bool;
   inline auto peak_filter_minlist(const intensity_t &maxd,
                                   const intensity_t &spd) -> bool;
   inline auto peak_filter_minlist_gtn(const size_t &x, const size_t &y,
                                       const spdata_t &mf, const spdata_t &sp,
-                                      const size_t &X, const size_t &Y,
-                                      const int neigh, const intensity_t Thresh)
-      -> bool;
-  auto max_in_neigh(size_t X, size_t Y, uint x, uint y, int n,
+                                      const size_t &x_max, const size_t &y_max,
+                                      const int &neigh,
+                                      const intensity_t &thresh) -> bool;
+  auto max_in_neigh(size_t x_max, size_t y_max, uint x, uint y, int n,
                     const spdata_t &sp) -> intensity_t;
   void maxfilter_x(spdata_t &maxfiltered_spectrogram,
                    const spdata_t &spectrogram, size_t sp_x, size_t sp_y,

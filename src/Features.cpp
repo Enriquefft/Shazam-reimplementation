@@ -1,7 +1,7 @@
 #include "Spectrogram.hpp"
 #include <algorithm>
-#include <deque>
 #include <concepts>
+#include <deque>
 #include <sndfile.h>
 
 using std::floating_point;
@@ -20,17 +20,18 @@ template <floating_point T> auto Spectrogram<T>::get_y() -> size_t {
 }
 
 template <floating_point T>
-inline auto Spectrogram<T>::is_max_in_neigh(size_t X, size_t Y, size_t x,
-                                            size_t y, int n, intensity_t thrsh,
+inline auto Spectrogram<T>::is_max_in_neigh(size_t x_max, size_t y_max,
+                                            size_t x, size_t y, int n,
+                                            intensity_t thrsh,
                                             const spdata_t &sp) -> bool {
   // clip the overhangs of the neighbourhood
   uint xlo = static_cast<uint>(std::max(0, static_cast<int>(x) - n));
   uint xhi = static_cast<uint>(
-      std::min(X, static_cast<size_t>(x) + static_cast<size_t>(n)));
+      std::min(x_max, static_cast<size_t>(x) + static_cast<size_t>(n)));
 
   uint ylo = static_cast<uint>(std::max(0, static_cast<int>(y) - n));
   uint yhi = static_cast<uint>(
-      std::min(Y, static_cast<size_t>(y) + static_cast<size_t>(n)));
+      std::min(y_max, static_cast<size_t>(y) + static_cast<size_t>(n)));
 
   for (uint i = xlo; i < xhi; i++) {
     for (uint j = ylo; j < yhi; j++) {
@@ -57,27 +58,27 @@ inline auto Spectrogram<T>::peak_filter_minlist(const intensity_t &maxd,
 template <floating_point T>
 inline auto Spectrogram<T>::peak_filter_minlist_gtn(
     const size_t &x, const size_t &y, const spdata_t &mf, const spdata_t &sp,
-    const size_t &X, const size_t &Y, const int NEIGH, const intensity_t THRESH)
-    -> bool {
+    const size_t &x_max, const size_t &y_max, const int &neigh,
+    const intensity_t &thresh) -> bool {
   bool is_candidate = mf[x][y] == sp[x][y] && sp[x][y] != 0;
 
   if (is_candidate) {
-    return is_max_in_neigh(X, Y, x, y, NEIGH, THRESH, sp);
+    return is_max_in_neigh(x_max, y_max, x, y, neigh, thresh, sp);
   }
   return false;
 }
 
 template <floating_point T>
-auto Spectrogram<T>::max_in_neigh(size_t X, size_t Y, uint x, uint y, int n,
-                                  const spdata_t &sp) -> intensity_t {
+auto Spectrogram<T>::max_in_neigh(size_t x_max, size_t y_max, uint x, uint y,
+                                  int n, const spdata_t &sp) -> intensity_t {
   // clip the overhangs of the neighbourhood
   uint xlo = static_cast<uint>(std::max(0, static_cast<int>(x) - n));
   uint xhi = static_cast<uint>(
-      std::min(X, static_cast<size_t>(x) + static_cast<size_t>(n)));
+      std::min(x_max, static_cast<size_t>(x) + static_cast<size_t>(n)));
 
   uint ylo = static_cast<uint>(std::max(0, static_cast<int>(y) - n));
   uint yhi = static_cast<uint>(
-      std::min(Y, static_cast<size_t>(y) + static_cast<size_t>(n)));
+      std::min(y_max, static_cast<size_t>(y) + static_cast<size_t>(n)));
 
   intensity_t t = sp[xlo][ylo];
   for (uint i = xlo; i < xhi; i++) {
