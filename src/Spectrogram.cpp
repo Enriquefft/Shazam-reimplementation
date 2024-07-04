@@ -38,7 +38,6 @@ auto Spectrogram<T>::block_wise_stft(matrix_t<std::complex<T>> &stft_matrix,
     }
 
     size_t bl_t = std::min(bl_s + n_columns, y_frames_cols);
-
     matrix_t<T> block_frames(audiodata_frames.size(),
                              std::vector<T>(bl_t - bl_s));
     for (size_t i = 0; i < audiodata_frames.size(); ++i) {
@@ -46,7 +45,6 @@ auto Spectrogram<T>::block_wise_stft(matrix_t<std::complex<T>> &stft_matrix,
                 audiodata_frames.at(i).begin() + static_cast<int64_t>(bl_t),
                 block_frames.at(i).begin());
     }
-
     auto fft_result = row_dft(multiply(fft_window, block_frames));
 
     for (size_t i = 0; i < stft_matrix.size(); ++i) {
@@ -470,6 +468,16 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
   stft_matrix = block_stft.first;
   off_start = block_stft.second;
   m_spectrogram = abs(stft_matrix);
+
+
+  std::cout << "Loging" << std::endl;
+  for (int i=0;i<m_spectrogram.size();i++)
+  {
+    for (int j=0;j<m_spectrogram[0].size();j++)
+    {
+      m_spectrogram[i][j] = log(m_spectrogram[i][j] + 1);
+    }
+  }
 
   vector_info(m_spectrogram, "spectrogram");
 }
