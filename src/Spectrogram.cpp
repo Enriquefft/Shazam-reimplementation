@@ -100,6 +100,14 @@ Spectrogram<T>::Spectrogram(const Audio<T> &audio)
     : m_spectrogram({}), m_features({}) {
   auto stft_matrix = stft(audio);
   m_spectrogram = abs(stft_matrix);
+  std::cout << "Logging" << '\n';
+  for (size_t i = 0; i < m_spectrogram.size(); i++) {
+    for (size_t j = 0; j < m_spectrogram[0].size(); j++) {
+      m_spectrogram.at(i).at(j) = std::log(m_spectrogram[i][j] + 1);
+    }
+  }
+
+  vector_info(m_spectrogram, "spectrogram");
 }
 
 template <floating_point T>

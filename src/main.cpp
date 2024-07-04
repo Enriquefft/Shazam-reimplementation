@@ -5,17 +5,21 @@
 
 auto main() -> int {
 
-  auto songs = {"a", "b"};
+  std::vector<std::string> songs = {"assets/the_bidding.wav"};
 
-  for (auto s : songs) {
+  for (const auto &song : songs) {
 
-    Audio<float> a("assets/the_bidding.wav");
+    Audio<float> audio(song);
 
-    Spectrogram<float> sp(a);
+    Spectrogram<float> spectrogram(audio);
 
-    sp.get_local_maximums();
-    std::cout << "Local Maxima found (processed " << sp.get_x() << ','
-              << sp.get_y() << ") pixels" << '\n';
+    spectrogram.get_local_maximums();
+    auto local_max = spectrogram.get_local_maximums();
+    auto spec = spectrogram.get_spectrogram();
+    // std::cout << spec.size() << ',' << spec[0].size() << '\n';
+    for (auto max : local_max) {
+      std::cout << max.time << ',' << max.hertz << '\n';
+    }
 
     // db.insert(sp.get_features)
   }
