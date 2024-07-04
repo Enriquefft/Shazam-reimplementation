@@ -66,20 +66,11 @@ auto Spectrogram<T>::padding_stft(matrix_t<std::complex<T>> &stft_matrix,
                                   const matrix_t<T> &fft_window)
     -> pair<matrix_t<std::complex<T>>, size_t> {
 
-  vector_info(fft_window, "fft_window");
-  vector_info(audiodata_frames_pre, "audiodata_frames_pre");
-  vector_info(audiodata_frames_post, "audiodata_frames_post");
-
   vector<vector<std::complex<T>>> fft_pre =
       row_dft(multiply(fft_window, audiodata_frames_pre));
 
   vector<vector<std::complex<T>>> fft_post =
       row_dft(multiply(fft_window, audiodata_frames_post));
-
-  vector_info(fft_pre, "fft_pre");
-  vector_info(multiply(fft_window, audiodata_frames_pre), "fft_pre_data");
-  vector_info(fft_post, "fft_post");
-  vector_info(multiply(fft_window, audiodata_frames_post), "fft_post_data");
 
   size_t off_start = audiodata_frames_pre.at(0).size();
   size_t off_end = audiodata_frames_post.at(0).size();
@@ -107,24 +98,26 @@ auto Spectrogram<T>::padding_stft(matrix_t<std::complex<T>> &stft_matrix,
 template <floating_point T>
 Spectrogram<T>::Spectrogram(const Audio<T> &audio)
     : m_spectrogram({}), m_features({}) {
-
-  stft(audio);
+  auto stft_matrix = stft(audio);
+  m_spectrogram = abs(stft_matrix);
 }
 
-template <floating_point T> Spectrogram<T>::Spectrogram(std::string fname) {
-  size_t width, height;
+template <floating_point T>
+Spectrogram<T>::Spectrogram(const std::string &csvname) {
+  size_t width = 0;
+  size_t height = 0;
 
   std::string s;
-  std::ifstream csv(fname);
+  std::ifstream csv(csvname);
   if (!csv.is_open()) {
-    std::cerr << "Error opening spectrogram.csv" << std::endl;
+    std::cerr << "Error opening spectrogram.csv" << '\n';
     return;
   }
 
   // Read dimensions from the first line
   getline(csv, s);
   std::stringstream dim_ss(s);
-  char delimiter;
+  char delimiter = 0;
   dim_ss >> width >> delimiter >> height;
 
   // Resize the spectrogram matrix
@@ -133,24 +126,24 @@ template <floating_point T> Spectrogram<T>::Spectrogram(std::string fname) {
   // Read spectrogram data from the rest of the file
   for (size_t i = 0; i < height; ++i) {
     if (!getline(csv, s)) {
-      std::cerr << "Error: Insufficient data in spectrogram.csv" << std::endl;
+      std::cerr << "Error: Insufficient data in spectrogram.csv" << '\n';
       return;
     }
     std::stringstream line_ss(s);
     for (size_t j = 0; j < width; ++j) {
       std::string intensity_str;
       if (!getline(line_ss, intensity_str, ',')) {
-        std::cerr << "Error: Insufficient data in row " << i + 1 << std::endl;
+        std::cerr << "Error: Insufficient data in row " << i + 1 << '\n';
         return;
       }
       try {
         m_spectrogram[i][j] =
             static_cast<intensity_t>(std::stoi(intensity_str));
       } catch (const std::invalid_argument &e) {
-        std::cerr << "Invalid argument: " << e.what() << std::endl;
+        std::cerr << "Invalid argument: " << e.what() << '\n';
         return;
       } catch (const std::out_of_range &e) {
-        std::cerr << "Out of range error: " << e.what() << std::endl;
+        std::cerr << "Out of range error: " << e.what() << '\n';
         return;
       }
     }
@@ -331,11 +324,12 @@ auto Spectrogram<T>::expand_to(const vector<T> &data,
 }
 
 template <floating_point T>
-void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
+auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
                           const std::optional<size_t> &hop_length,
                           const std::optional<size_t> &window_length,
                           const WINDOW_FUNCT &window, bool center,
-                          const PADDING_MODE &padding_mode) {
+                          const PADDING_MODE &padding_mode)
+    -> matrix_t<std::complex<T>> {
 
   auto effectve_window_length = window_length.value_or(n_fft);
   auto effective_hop_length = hop_length.value_or(effectve_window_length / 4);
@@ -469,9 +463,7 @@ void Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
   print("finished block stft");
   stft_matrix = block_stft.first;
   off_start = block_stft.second;
-  m_spectrogram = abs(stft_matrix);
-
-  vector_info(m_spectrogram, "spectrogram");
+  return stft_matrix;
 }
 
 // Explicit instantiation

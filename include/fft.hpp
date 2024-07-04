@@ -43,25 +43,6 @@ auto matrix_dft(const std::vector<std::vector<T>> &matrix)
     }
   }
 
-  // for (size_t k = 0; k < rows; ++k) {
-  //
-  //   for (size_t n = 0; n <= cols / 2; ++n) {
-  //     std::complex<T> sum = 0;
-  //     for (size_t t = 0; t < cols; ++t) {
-  //
-  //       T tn = static_cast<T>(n);
-  //       T tt = static_cast<T>(t);
-  //       T tcols = static_cast<T>(cols);
-  //
-  //       T angle = 2 * static_cast<T>(std::numbers::pi) * tn * tt / tcols;
-  //
-  //       sum += std::complex<T>(matrix[k][t] * std::cos(angle),
-  //                              -matrix[k][t] * std::sin(angle));
-  //     }
-  //     result[k][n] = sum;
-  //   }
-  // }
-
   return result;
 }
 
