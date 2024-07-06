@@ -42,11 +42,12 @@ private:
   /// @param window Type of window function to use.
   /// @param center If true, pads the signal to center the frame.
   /// @param padding_mode Padding strategy to use.
-  void stft(const Audio<T> &audio, const size_t &n_fft = DEFAULT_NFFT,
+  auto stft(const Audio<T> &audio, const size_t &n_fft = DEFAULT_NFFT,
             const std::optional<size_t> &hop_length = std::nullopt,
             const std::optional<size_t> &window_length = std::nullopt,
             const WINDOW_FUNCT &window = WINDOW_FUNCT::HANN, bool center = true,
-            const PADDING_MODE &padding_mode = PADDING_MODE::CONSTANT);
+            const PADDING_MODE &padding_mode = PADDING_MODE::CONSTANT)
+      -> std::vector<std::vector<std::complex<T>>>;
 
   static auto
   block_wise_stft(std::vector<std::vector<std::complex<T>>> &stft_matrix,
@@ -76,7 +77,7 @@ private:
   auto frame(const std::vector<T> &audiodata, size_t frame_length,
              size_t hop_length) -> std::vector<std::vector<T>>;
 
-  /// @brief Get the window function.
+  /// @brief Call the window function.
   /// @param window Type of window function.
   /// @param n_points Number of points in the window.
   auto get_window(const WINDOW_FUNCT &window, const size_t &n_points)
@@ -171,7 +172,7 @@ public:
   /// @brief Read a spectrogram from a CSV like a monochrome image. Delete this
   /// on final integration
   /// @param fname filename of the csv to read!
-  explicit Spectrogram(std::string csvname);
+  explicit Spectrogram(const std::string &csvname);
 
   auto get_x() -> size_t;
   auto get_y() -> size_t;

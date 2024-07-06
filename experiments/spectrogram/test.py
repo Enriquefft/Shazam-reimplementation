@@ -1,9 +1,12 @@
 import numpy as np
 
+
 import math
 
 
 from random import randint
+
+from librosa import stft
 
 arr1 = np.ones((5, 1))
 mat1 = np.ones((5, 2)) * randint(10, 20)
@@ -12,6 +15,12 @@ print(arr1)
 print(mat1)
 
 print(arr1 * mat1)
+
+matrx = np.array((100, 100))
+
+np.fft.rfft(matrx, axis=-2)
+
+np.transpose(np.fft.rfft(np.transpose(matrx)))
 
 
 # Define a 2D array and a 1D array
