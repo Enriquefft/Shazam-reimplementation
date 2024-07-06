@@ -5,7 +5,8 @@
 
 auto main() -> int {
 
-  std::vector<std::filesystem::path> songs = {"assets/the_bidding.wav"};
+  std::vector<std::filesystem::path> songs = {"assets/the_bidding.wav",
+                                              "assets/1mb.wav"};
 
   using TypeParam = double;
 
@@ -15,13 +16,11 @@ auto main() -> int {
     Spectrogram spectrogram(audio);
     auto complex_spectrogram = Spectrogram<TypeParam>::stft(audio);
 
-    print("audiodata_sum: {}", sum_vector(audio.m_audiodata));
-    print("audiodata_shape: {}", audio.m_audiodata.size());
-
     std::complex<TypeParam> comp_sum = sum_vector(complex_spectrogram);
 
     print("complex_spectrogram_sum: {}, {}", comp_sum.real(), comp_sum.imag());
-    print("complex_spectrogram_shape: {}", complex_spectrogram.size());
+    print("complex_spectrogram_shape: {}, {}", complex_spectrogram.size(),
+          complex_spectrogram.at(0).size());
 
     spectrogram.get_local_maximums();
     auto local_max = spectrogram.get_local_maximums();

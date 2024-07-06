@@ -18,6 +18,9 @@
 
         packages = with pkgs; [
 
+            # Audio manipulation
+          ffmpeg_7-headless
+
           # TODO: this is a dirty hack to make the dependencies available to pkg-config
           libsndfile
 

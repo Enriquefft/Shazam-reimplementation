@@ -372,7 +372,7 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
                           const PADDING_MODE &padding_mode)
     -> matrix_t<std::complex<T>> {
   auto effectve_window_length = window_length.value_or(n_fft);
-  auto effective_hop_length = hop_length.value_or(effectve_window_length / 2);
+  auto effective_hop_length = hop_length.value_or(effectve_window_length / 4);
 
   auto fft_window = get_window(window, n_fft);
 
@@ -501,6 +501,9 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
                                     expanded_fft_window, n_columns, off_start);
   stft_matrix = block_stft.first;
   off_start = block_stft.second;
+
+  vector_info(stft_matrix, "stft");
+
   return stft_matrix;
 }
 

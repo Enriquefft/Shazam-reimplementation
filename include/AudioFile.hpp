@@ -5,6 +5,8 @@
 #include <optional>
 #include <vector>
 
+#include <sndfile.h>
+
 template <std::floating_point T> class Audio {
 public:
   std::vector<T> m_audiodata;
