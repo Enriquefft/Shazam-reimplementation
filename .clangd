@@ -1,6 +1,6 @@
 CompileFlags:
   Add:
-    # - "-Weverything"
+    - "-Weverything"
 Diagnostics:
   ClangTidy:
     Add: [
@@ -18,8 +18,6 @@ Diagnostics:
         -google-objc*,
       ]
     Remove: [
-        # modernize-use-trailing-return-type,
-
         # Redundant aliases
         hicpp-avoid-c-arrays,
         cppcoreguidelines-avoid-c-arrays,

@@ -29,13 +29,7 @@ auto Spectrogram<T>::block_wise_stft(matrix_t<std::complex<T>> &stft_matrix,
 
   size_t y_frames_cols = audiodata_frames[0].size();
 
-  print("block count: {}", y_frames_cols / n_columns);
-
   for (size_t bl_s = 0; bl_s < y_frames_cols; bl_s += n_columns) {
-
-    if (bl_s % n_columns * 3 == 0) {
-      print("block n{}", bl_s / n_columns);
-    }
 
     size_t bl_t = std::min(bl_s + n_columns, y_frames_cols);
     matrix_t<T> block_frames(audiodata_frames.size(),
@@ -98,14 +92,12 @@ Spectrogram<T>::Spectrogram(const Audio<T> &audio)
     : m_spectrogram({}), m_features({}) {
   auto stft_matrix = stft(audio);
   m_spectrogram = abs(stft_matrix);
-  std::cout << "Logging" << '\n';
+
   for (size_t i = 0; i < m_spectrogram.size(); i++) {
     for (size_t j = 0; j < m_spectrogram[0].size(); j++) {
       m_spectrogram.at(i).at(j) = std::log(m_spectrogram[i][j] + 1);
     }
   }
-
-  vector_info(m_spectrogram, "spectrogram");
 }
 
 template <floating_point T>
@@ -163,6 +155,51 @@ auto Spectrogram<T>::get_spectrogram() -> matrix_t<T> {
   return m_spectrogram;
 }
 
+constexpr auto MIN_THRESHOLD = 1e-10;
+template <floating_point T>
+auto Spectrogram<T>::normalize(const matrix_t<T> &spectrogram)
+    -> std::vector<std::vector<T>> {
+
+  matrix_t<T> normalized_spectrogram;
+  normalized_spectrogram.reserve(spectrogram.size());
+
+  T max_normalized_elem;
+  std::ranges::transform(
+      spectrogram, std::back_inserter(normalized_spectrogram),
+      [&max_normalized_elem](const auto &row) {
+        std::vector<T> log_squared_row;
+        log_squared_row.reserve(row.size());
+
+        std::ranges::transform(
+            row, std::back_inserter(log_squared_row),
+            [&max_normalized_elem](const auto &elem) {
+              T new_elem =
+                  10 * std::log10(std::max(T(MIN_THRESHOLD), elem * elem));
+              if (new_elem > max_normalized_elem) {
+                max_normalized_elem = new_elem;
+              }
+              return new_elem;
+            });
+
+        return log_squared_row;
+      });
+
+  max_normalized_elem -= 80;
+  // Apply upper bound
+  std::ranges::transform(
+      normalized_spectrogram.begin(), normalized_spectrogram.end(),
+      normalized_spectrogram.begin(), [&max_normalized_elem](auto &row) {
+        std::ranges::transform(row.begin(), row.end(), row.begin(),
+                               [&max_normalized_elem](const auto &elem) {
+                                 return std::max(elem, max_normalized_elem);
+                               });
+
+        return row;
+      });
+
+  return normalized_spectrogram;
+}
+
 template <typename T>
 inline auto slice_matrix(const matrix_t<T> &matrix, size_t off_start)
     -> matrix_t<T> {
@@ -204,7 +241,6 @@ auto Spectrogram<T>::generate_matrix(pair<size_t, size_t> dimensions)
 template <floating_point T>
 auto Spectrogram<T>::frame(const vector<T> &audiodata, size_t frame_length,
                            size_t hop_length) -> matrix_t<T> {
-
   if (audiodata.size() < static_cast<size_t>(frame_length)) {
     throw std::invalid_argument(
         std::format("Input is too short for the given frame length. with "
@@ -231,7 +267,6 @@ auto Spectrogram<T>::frame(const vector<T> &audiodata, size_t frame_length,
 
 template <floating_point T>
 auto Spectrogram<T>::hann(size_t n_points) -> vector<T> {
-
   if (n_points == 0) {
     return {};
   }
@@ -298,7 +333,6 @@ template <floating_point T>
 auto Spectrogram<T>::pad_center(const vector<T> &data,
                                 const size_t &target_size,
                                 const PADDING_MODE &padding_mode) -> vector<T> {
-
   if (target_size <= data.size()) {
     return data;
   }
@@ -314,7 +348,6 @@ auto Spectrogram<T>::pad_center(const vector<T> &data,
 template <floating_point T>
 auto Spectrogram<T>::expand_to(const vector<T> &data,
                                const size_t &target_dim) {
-
   if (target_dim < 2) {
     throw std::invalid_argument("ndim must be at least 2 for this example.");
   }
@@ -336,7 +369,6 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
                           const WINDOW_FUNCT &window, bool center,
                           const PADDING_MODE &padding_mode)
     -> matrix_t<std::complex<T>> {
-
   auto effectve_window_length = window_length.value_or(n_fft);
   auto effective_hop_length = hop_length.value_or(effectve_window_length / 4);
 
@@ -455,7 +487,6 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
 
     auto pad_stft = padding_stft(stft_matrix, audiodata_frames_pre,
                                  audiodata_frames_post, expanded_fft_window);
-    print("finished padding stft");
     stft_matrix = pad_stft.first;
     off_start = pad_stft.second;
   }
@@ -466,9 +497,11 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
   // Process the main audiodata with a block-based sliding window
   auto block_stft = block_wise_stft(stft_matrix, audiodata_frames,
                                     expanded_fft_window, n_columns, off_start);
-  print("finished block stft");
   stft_matrix = block_stft.first;
   off_start = block_stft.second;
+
+  vector_info(stft_matrix, "stft");
+
   return stft_matrix;
 }
 

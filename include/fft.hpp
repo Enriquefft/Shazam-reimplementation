@@ -4,11 +4,10 @@
 #include <complex>
 #include <vector>
 
-#include <cmath>
-#include <numbers> // Requires C++20 for std::numbers::pi
-
 template <typename T>
-void fft_recursive(std::vector<std::complex<T>> &input, bool inverse = false) {
+constexpr void fft_recursive(std::vector<std::complex<T>> &input,
+                             bool inverse = false) {
+
   size_t n = input.size();
   if (n <= 1) {
     return;
@@ -24,7 +23,7 @@ void fft_recursive(std::vector<std::complex<T>> &input, bool inverse = false) {
   fft_recursive(even, inverse);
   fft_recursive(odd, inverse);
 
-  T angle = (inverse ? 2 : -2) * std::numbers::pi_v<T> / n;
+  T angle = (inverse ? 2 : -2) * std::numbers::pi_v<T> / static_cast<T>(n);
   std::complex<T> w(1);
   std::complex<T> wn(std::cos(angle), std::sin(angle));
   for (size_t k = 0; k < n / 2; ++k) {
@@ -39,7 +38,9 @@ void fft_recursive(std::vector<std::complex<T>> &input, bool inverse = false) {
 }
 
 template <std::floating_point T>
-auto fft(const std::vector<T> &input) -> std::vector<std::complex<T>> {
+constexpr auto fft(const std::vector<T> &input)
+    -> std::vector<std::complex<T>> {
+
   size_t n = input.size();
   std::vector<std::complex<T>> data(n);
   for (size_t i = 0; i < n; ++i) {
@@ -52,14 +53,13 @@ auto fft(const std::vector<T> &input) -> std::vector<std::complex<T>> {
 }
 
 template <std::floating_point T>
-auto matrix_dft(const std::vector<std::vector<T>> &matrix)
-    -> std::vector<std::vector<std::complex<T>>> {
+constexpr auto matrix_dft(const matrix_t<T> &matrix)
+    -> matrix_t<std::complex<T>> {
 
     size_t rows = matrix.size();
     size_t cols = matrix[0].size();
 
-  std::vector<std::vector<std::complex<T>>> result(
-      rows, std::vector<std::complex<T>>(cols));
+  matrix_t<std::complex<T>> result(rows, std::vector<std::complex<T>>(cols));
 
   // Perform 1D DFT on each row
   for (size_t k = 0; k < rows; ++k) {
@@ -78,8 +78,7 @@ auto matrix_dft(const std::vector<std::vector<T>> &matrix)
  * @return a complex matrix
  */
 template <std::floating_point T>
-auto row_dft(const std::vector<std::vector<T>> &matrix)
-    -> std::vector<std::vector<std::complex<T>>> {
+constexpr auto row_dft(const matrix_t<T> &matrix) -> matrix_t<std::complex<T>> {
 
   return transpose(matrix_dft(transpose(matrix)));
 }

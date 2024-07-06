@@ -19,11 +19,13 @@ endif()
 # ##############################################################################
 # Targets
 
-add_executable(${PROJECT_NAME} src/main.cpp)
-target_sources(${PROJECT_NAME} PRIVATE #[[ src/Spotify.cpp ]] src/AudioFile.cpp
-                                       src/Spectrogram.cpp src/Features.cpp)
+set(PROJECT_APP ${PROJECT_NAME}_APP)
+add_library(${PROJECT_NAME} #[[ src/Spotify.cpp ]]
+            src/AudioFile.cpp src/Spectrogram.cpp src/Features.cpp)
 
-target_include_directories(${PROJECT_NAME} PRIVATE include/)
+add_executable(${PROJECT_APP} src/main.cpp)
+
+target_include_directories(${PROJECT_NAME} PUBLIC include/)
 
 # ##############################################################################
 
@@ -62,7 +64,11 @@ target_compile_options(
             -Wno-c++20-extensions
             -Wno-c99-extensions
             -Wno-zero-as-null-pointer-constant
-            -Wno-error=padded
+
+            -Wno-padded
+            -Wno-global-constructors
+            -Wno-exit-time-destructors
+
             # Temporarily removed due to bug upstream
             # (https://github.com/llvm/llvm-project/issues/59572)
             -Wno-unused-macros
@@ -95,7 +101,7 @@ find_package(Threads REQUIRED QUIET)
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 
 # config
-target_link_libraries(${PROJECT_NAME} PRIVATE common)
+target_link_libraries(${PROJECT_NAME} PUBLIC common)
 
 # ##############################################################################
 
@@ -117,7 +123,7 @@ else() # Only use this if spdlog is not installed on your system
   target_include_directories(${PROJECT_NAME} SYSTEM
                              PUBLIC ${CMAKE_SOURCE_DIR}/libs/spdlog/)
 endif()
-target_compile_definitions(${PROJECT_NAME} PRIVATE SPDLOG_USE_STD_FORMAT)
+target_compile_definitions(${PROJECT_NAME} PUBLIC SPDLOG_USE_STD_FORMAT)
 
 # ##############################################################################
 
@@ -128,7 +134,7 @@ FetchContent_Declare(
   GIT_TAG v3.11.3
   SYSTEM)
 FetchContent_MakeAvailable(json)
-target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
 
 # curl / cpr
 
@@ -138,13 +144,15 @@ FetchContent_Declare(
   GIT_TAG 3b15fa82ea74739b574d705fea44959b58142eb8
   SYSTEM)
 FetchContent_MakeAvailable(cpr)
-target_link_libraries(${PROJECT_NAME} PRIVATE cpr::cpr)
+target_link_libraries(${PROJECT_NAME} PUBLIC cpr::cpr)
 
 # Ctest
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG f8d7d77c06936315286eb55f8de22cd23c188571)
+
+target_link_libraries(${PROJECT_APP} PRIVATE ${PROJECT_NAME} common)
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt
