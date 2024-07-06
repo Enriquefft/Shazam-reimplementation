@@ -1,6 +1,7 @@
 #ifndef INCLUDE_SPECTROGRAM_HPP_
 #define INCLUDE_SPECTROGRAM_HPP_
 
+#include "utils.hpp"
 #include <complex>
 #include <cstddef>  // for size_t
 #include <cstdint>  // for int64_t
@@ -34,21 +35,6 @@ private:
   std::vector<std::vector<T>> m_spectrogram; ///< 2D matrix for spectrogram.
   std::vector<DataPoint> m_features; ///< Extracted features from spectrogram.
 
-  /// @brief Short-time Fourier transform (STFT) calculation.
-  /// @param audio The audio data to transform.
-  /// @param n_fft Number of FFT components.
-  /// @param hop_length Number of audio samples between adjacent STFT columns.
-  /// @param window_length Each frame of audio is windowed by window_length.
-  /// @param window Type of window function to use.
-  /// @param center If true, pads the signal to center the frame.
-  /// @param padding_mode Padding strategy to use.
-  auto stft(const Audio<T> &audio, const size_t &n_fft = DEFAULT_NFFT,
-            const std::optional<size_t> &hop_length = std::nullopt,
-            const std::optional<size_t> &window_length = std::nullopt,
-            const WINDOW_FUNCT &window = WINDOW_FUNCT::HANN, bool center = true,
-            const PADDING_MODE &padding_mode = PADDING_MODE::CONSTANT)
-      -> std::vector<std::vector<std::complex<T>>>;
-
   static auto
   block_wise_stft(std::vector<std::vector<std::complex<T>>> &stft_matrix,
                   const std::vector<std::vector<T>> &audiodata_frames,
@@ -66,7 +52,7 @@ private:
   /// @param dimensions Dimensions of the matrix.
   /// @return 2D matrix of the specified dimensions.
   template <typename K>
-  auto generate_matrix(std::pair<size_t, size_t> dimensions)
+  static auto generate_matrix(std::pair<size_t, size_t> dimensions)
       -> std::vector<std::vector<K>>;
 
   /// @brief Frame a given audio data.
@@ -74,13 +60,13 @@ private:
   /// @param frame_length Length of each frame.
   /// @param hop_length Number of samples between frames.
   /// @return 2D matrix with framed audio data.
-  auto frame(const std::vector<T> &audiodata, size_t frame_length,
-             size_t hop_length) -> std::vector<std::vector<T>>;
+  static auto frame(const std::vector<T> &audiodata, size_t frame_length,
+                    size_t hop_length) -> std::vector<std::vector<T>>;
 
   /// @brief Call the window function.
   /// @param window Type of window function.
   /// @param n_points Number of points in the window.
-  auto get_window(const WINDOW_FUNCT &window, const size_t &n_points)
+  static auto get_window(const WINDOW_FUNCT &window, const size_t &n_points)
       -> std::vector<T>;
 
   /// @brief Generate a Hann window.
@@ -171,7 +157,7 @@ public:
 
   /// @brief Read a spectrogram from a CSV like a monochrome image. Delete this
   /// on final integration
-  /// @param fname filename of the csv to read!
+  /// @param csvname filename of the csv to read!
   explicit Spectrogram(const std::string &csvname);
 
   auto get_x() -> size_t;
@@ -186,6 +172,26 @@ public:
   /// @brief Extract local maximum features from the spectrogram.
   /// @return Vector of data points representing local maximums.
   auto get_local_maximums() -> std::vector<DataPoint>;
+
+  ///@brief Get the db_normalized spectrogram
+  static auto normalize(const matrix_t<T> &spectrogram)
+      -> std::vector<std::vector<T>>;
+
+  /// @brief Short-time Fourier transform (STFT) calculation.
+  /// @param audio The audio data to transform.
+  /// @param n_fft Number of FFT components.
+  /// @param hop_length Number of audio samples between adjacent STFT columns.
+  /// @param window_length Each frame of audio is windowed by window_length.
+  /// @param window Type of window function to use.
+  /// @param center If true, pads the signal to center the frame.
+  /// @param padding_mode Padding strategy to use.
+  static auto stft(const Audio<T> &audio, const size_t &n_fft = DEFAULT_NFFT,
+                   const std::optional<size_t> &hop_length = std::nullopt,
+                   const std::optional<size_t> &window_length = std::nullopt,
+                   const WINDOW_FUNCT &window = WINDOW_FUNCT::HANN,
+                   bool center = true,
+                   const PADDING_MODE &padding_mode = PADDING_MODE::CONSTANT)
+      -> std::vector<std::vector<std::complex<T>>>;
 };
 
 template <std::floating_point T>

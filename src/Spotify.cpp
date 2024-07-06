@@ -16,9 +16,6 @@ constexpr auto SPOTIFY_RESPONSE_LIMIT = 50;
 Spotify::Spotify(const std::string &client_id,
                  const std::string &client_secret) {
 
-  std::cout << "client_id: " << client_id << '\n';
-  std::cout << "client_secret: " << client_secret << '\n';
-
   cpr::Response response = cpr::Post(
       cpr::Url{SPOTIFY_TOKEN_URL}, cpr::Payload{{"key", "value"}},
       cpr::Payload{{"grant_type", "client_credentials"},
@@ -26,8 +23,6 @@ Spotify::Spotify(const std::string &client_id,
                    {"client_secret", client_secret}},
       cpr::Header{{"Content-Type", "application/x-www-form-urlencoded"}});
   auto json_string = response.text;
-
-  std::cout << "Json response:\t" << json_string << '\n';
 
   auto json_object = json::parse(json_string);
 
@@ -50,7 +45,6 @@ Spotify::Spotify()
 
 auto Spotify::get_track_names(const std::string &playlist_id) const
     -> std::vector<std::string> {
-  std::cout << playlist_id;
   // Fetch playlist tracks
   std::string playlist_url =
       std::string(SPOTIFY_BASE_URL) + "/playlists/" + playlist_id +
