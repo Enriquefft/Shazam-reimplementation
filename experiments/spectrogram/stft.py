@@ -210,16 +210,12 @@ def stft(
 
     # fft_window = get_window(window, win_length, fftbins=True)
     fft_window = utils.hann(win_length)
-    print("fft_window 1", fft_window.shape, fft_window.sum())
 
     # Pad the window out to n_fft size
     fft_window = utils.pad_center(fft_window, size=n_fft)
-    print("fft_window 1", fft_window.shape, fft_window.sum())
 
     # Reshape so that the window can be broadcast
     fft_window = utils.expand_to(fft_window, ndim=1 + y.ndim)
-
-    print("fft_window 1", fft_window.shape, fft_window.sum())
 
     if n_fft > y.shape[-1]:
         print("WARNING")
@@ -276,7 +272,7 @@ def stft(
             y_post = np.pad(y_post_trimmed, padding, mode=pad_mode)
 
             y_frames_post = utils.frame2(
-                y_post, frame_length=n_fft, hop_length=hop_length
+                y_post, frame_length=n_fft, hop_length=hop_length, info=True
             )
 
             # How many extra frames do we have from the tail?
@@ -307,22 +303,16 @@ def stft(
 
     stft_matrix = np.zeros(shape, dtype=dtype, order="F")
 
+    utils.print_info(fft_window, "fft_window")
+    utils.print_info(y_frames, "y_frames")
+    utils.print_info(y_frames_pre, "y_frames_pre")
+    utils.print_info(y_frames_post, "y_frames_post")
+    utils.print_info(stft_matrix, "stft_matrix")
+    print("extra", extra)
+
     # Fill in the warm-upw
     fft_pre = np.fft.rfft(fft_window * y_frames_pre, axis=-2)
     fft_post = np.fft.rfft(fft_window * y_frames_post, axis=-2)
-
-    print("fft_pre: ", fft_pre.shape, fft_pre.sum())
-    print(
-        "fft_pre_data: ",
-        (fft_window * y_frames_pre).shape,
-        (fft_window * y_frames_pre).sum(),
-    )
-    print("fft_post: ", fft_post.shape, fft_post.sum())
-    print(
-        "fft_post_data: ",
-        (fft_window * y_frames_post).shape,
-        (fft_window * y_frames_post).sum(),
-    )
 
     if center and extra > 0:
         off_start = y_frames_pre.shape[-1]
