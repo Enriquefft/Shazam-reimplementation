@@ -2,33 +2,38 @@
 #include "Spectrogram.hpp"
 #include <filesystem>
 #include <spdlog/spdlog.h>
+#include <csvdumps.hpp>
+
+
 
 auto main() -> int {
 
-  std::vector<std::filesystem::path> songs = {"assets/the_bidding.wav",
-                                              "assets/1mb.wav"};
+  std::vector<std::filesystem::path> songs = {"assets/1mb.wav"};
 
   using TypeParam = double;
 
   for (const auto &song : songs) {
 
-    Audio<TypeParam> audio(song);
-    Spectrogram spectrogram(audio);
-    auto complex_spectrogram = Spectrogram<TypeParam>::stft(audio);
+    print("Hashing {}", song.string());
+    // Audio<TypeParam> audio(song);
+    Spectrogram<TypeParam> spectrogram = Spectrogram<TypeParam>("assets/simple.csv");
+    // auto complex_spectrogram = Spectrogram<TypeParam>::stft(audio);
 
-    std::complex<TypeParam> comp_sum = sum_vector(complex_spectrogram);
+    // std::complex<TypeParam> comp_sum = sum_vector(complex_spectrogram);
 
-    print("complex_spectrogram_sum: {}, {}", comp_sum.real(), comp_sum.imag());
-    print("complex_spectrogram_shape: {}, {}", complex_spectrogram.size(),
-          complex_spectrogram.at(0).size());
+    // print("complex_spectrogram_sum: {}, {}", comp_sum.real(), comp_sum.imag());
+    // print("complex_spectrogram_shape: {}, {}", complex_spectrogram.size(),
+    //      complex_spectrogram.at(0).size());
 
     spectrogram.get_local_maximums();
     auto local_max = spectrogram.get_local_maximums();
     auto spec = spectrogram.get_spectrogram();
-    // for (const auto &max : local_max) {
-    // std::cout << max.time << ',' << max.hertz << '\n';
-    // }
 
+    auto sppath = song.parent_path().parent_path() / "experiments" / (song.stem().string() + "_spec.csv");
+    auto ptspath = song.parent_path().parent_path() / "experiments" / (song.stem().string() + "_crits.csv");
+    print("Dumping spectrogram... @{}", sppath.string());
+    csvWriteSpectrogram(spectrogram,sppath);
+    csvWriteLocalMaxima(local_max,ptspath);
     // db.insert(sp.get_features)
   }
 
