@@ -184,9 +184,9 @@ void Spectrogram<T>::maxfilter_y(spdata_t &maxfiltered_spectrogram, size_t sp_x,
   }
 }
 
-constexpr auto MAX_FILTER = 100;
-constexpr auto GTN_WINDOW_SIZE = 30;
-constexpr float MAXIMA_THRESHOLD = 0.7F;
+constexpr auto MAX_FILTER = 30;
+constexpr auto GTN_WINDOW_SIZE = 0;
+constexpr float MAXIMA_THRESHOLD = 0.0F;
 
 template <floating_point T>
 auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
@@ -195,8 +195,9 @@ auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
   // the API
 
   // return maxima_GTN_algorithm(30,0.5f);
-  return maxima_minlistgcn_algorithm(MAX_FILTER, GTN_WINDOW_SIZE,
-                                     MAXIMA_THRESHOLD);
+  //return maxima_minlistgcn_algorithm(MAX_FILTER, GTN_WINDOW_SIZE,
+  //                                   MAXIMA_THRESHOLD);
+  return maxima_minlist_algorithm_optimized(MAX_FILTER);
 }
 
 template <floating_point T>
