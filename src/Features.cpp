@@ -39,7 +39,7 @@ inline auto Spectrogram<T>::is_max_in_neigh(size_t x_max, size_t y_max,
       if (x == i && y == j) {
         continue;
       }
-      if (std::max(T{}, sp[i][j] - thrsh) + __FLT_EPSILON__ >=
+      if (std::max(T{}, sp[i][j] - thrsh) >=
           std::max(T{}, sp[x][y] - thrsh)) {
         return false;
       }
@@ -52,7 +52,7 @@ template <floating_point T>
 inline auto Spectrogram<T>::peak_filter_minlist(const intensity_t &maxd,
                                                 const intensity_t &spd)
     -> bool {
-  return maxd == spd && spd != 0;
+  return (maxd - spd) <= __FLT_EPSILON__ && spd != 0;
 }
 
 template <floating_point T>
@@ -60,7 +60,7 @@ inline auto Spectrogram<T>::peak_filter_minlist_gtn(
     const size_t &x, const size_t &y, const spdata_t &mf, const spdata_t &sp,
     const size_t &x_max, const size_t &y_max, const int &neigh,
     const intensity_t &thresh) -> bool {
-  bool is_candidate = mf[x][y] == sp[x][y] && sp[x][y] != 0;
+  bool is_candidate = ((mf[x][y] - sp[x][y]) <= __FLT_EPSILON__) && sp[x][y] != 0;
 
   if (is_candidate) {
     return is_max_in_neigh(x_max, y_max, x, y, neigh, thresh, sp);
@@ -148,7 +148,8 @@ void Spectrogram<T>::maxfilter_y(spdata_t &maxfiltered_spectrogram, size_t sp_x,
     size_t x_read = 0;
     size_t x_write = 0;
 
-    for (; x_read < static_cast<size_t>(neigh) && x_read < sp_x; ++x_read) {
+    // Initialize wedge for the first window
+    for (; x_read < w_size && x_read < sp_x; ++x_read) {
       while (!wedge.empty() && maxfiltered_spectrogram[wedge.back()][y] <=
                                    maxfiltered_spectrogram[x_read][y]) {
         wedge.pop_back();
@@ -156,37 +157,46 @@ void Spectrogram<T>::maxfilter_y(spdata_t &maxfiltered_spectrogram, size_t sp_x,
       wedge.push_back(x_read);
     }
 
+    // Process each column
     for (; x_read < sp_x; ++x_read, ++x_write) {
-      while (!wedge.empty() && maxfiltered_spectrogram[wedge.back()][y] <=
-                                   maxfiltered_spectrogram[x_read][y]) {
-        wedge.pop_back();
-      }
-      wedge.push_back(x_read);
-      maxfiltered_spectrogram[x_write][y] =
-          maxfiltered_spectrogram[wedge.front()][y];
-      if (x_read + 1 >= w_size) {
-        if (wedge.front() == x_start) {
-          wedge.pop_front();
-        }
-        ++x_start;
-      }
-    }
-
-    for (; x_write < sp_x; ++x_write) {
-      maxfiltered_spectrogram[x_write][y] =
-          maxfiltered_spectrogram[wedge.front()][y];
-      if (wedge.front() == x_start) {
+      // Remove elements outside the window
+      while (!wedge.empty() && wedge.front() <= x_read - w_size) {
         wedge.pop_front();
       }
-      ++x_start;
+
+      // Add the current element to the wedge
+      while (!wedge.empty() && maxfiltered_spectrogram[wedge.back()][y] <=
+                                   maxfiltered_spectrogram[x_read][y]) {
+        wedge.pop_back();
+      }
+      wedge.push_back(x_read);
+
+      // Update the maxfiltered_spectrogram
+      maxfiltered_spectrogram[x_write][y] =
+          maxfiltered_spectrogram[wedge.front()][y];
     }
+
+    // Finalize the remaining columns
+    for (; x_write < sp_x; ++x_write) {
+      // Remove elements outside the window
+      while (!wedge.empty() && wedge.front() <= x_write - w_size) {
+        wedge.pop_front();
+      }
+      
+      // Update the maxfiltered_spectrogram
+      maxfiltered_spectrogram[x_write][y] =
+          maxfiltered_spectrogram[wedge.front()][y];
+    }
+
+    // Clear wedge for the next row
     wedge.clear();
   }
 }
 
-constexpr auto MAX_FILTER = 30;
-constexpr auto GTN_WINDOW_SIZE = 0;
-constexpr float MAXIMA_THRESHOLD = 0.0F;
+
+constexpr auto MAX_FILTER = 150;
+constexpr auto GTN_WINDOW_SIZE = 30;
+constexpr float MAXIMA_THRESHOLD = 0.9F;
 
 template <floating_point T>
 auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
@@ -194,10 +204,10 @@ auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
   // maxima. the idea is to allow hyperparameter tuning that was not defined in
   // the API
 
-  // return maxima_GTN_algorithm(30,0.5f);
-  //return maxima_minlistgcn_algorithm(MAX_FILTER, GTN_WINDOW_SIZE,
-  //                                   MAXIMA_THRESHOLD);
-  return maxima_minlist_algorithm_optimized(MAX_FILTER);
+  // return maxima_gtn_algorithm(30,0.5f);
+  return maxima_minlistgcn_algorithm(MAX_FILTER, GTN_WINDOW_SIZE,
+                                     MAXIMA_THRESHOLD);
+  // return maxima_minlist_algorithm_optimized(MAX_FILTER);
 }
 
 template <floating_point T>
@@ -207,6 +217,7 @@ auto Spectrogram<T>::maxima_minlist_algorithm(int neigh) -> CritSet_t {
   // get dimensions of spectrogram
   sp_x = m_spectrogram.size();
   sp_y = sp_x > 0 ? m_spectrogram[0].size() : 0;
+  spdata_t d(sp_x,spcol_t(sp_y));
 
   CritSet_t dat;
 
@@ -214,6 +225,7 @@ auto Spectrogram<T>::maxima_minlist_algorithm(int neigh) -> CritSet_t {
     for (uint j = 0; j < sp_y; j++) {
       intensity_t maxfiltered =
           max_in_neigh(sp_x, sp_y, i, j, neigh, m_spectrogram);
+          d[i][j] = maxfiltered;
 
       if (peak_filter_minlist(maxfiltered, m_spectrogram[i][j])) {
         dat.push_back(DataPoint{static_cast<hertz_t>(i), static_cast<time_t>(j),
@@ -221,6 +233,7 @@ auto Spectrogram<T>::maxima_minlist_algorithm(int neigh) -> CritSet_t {
       }
     }
   }
+
 
   return dat;
 }
@@ -260,7 +273,11 @@ auto Spectrogram<T>::maxima_minlistgcn_algorithm(int maxfilter_s, int gtn_s,
   size_t sp_y = sp_x > 0 ? m_spectrogram[0].size() : 0;
   spdata_t maxf_sp(sp_x, spcol_t(sp_y));
 
-  // find mean loudness of the spectrogram
+  // Apply max filters (the way they are implemented forces this order :/)
+  maxfilter_x(maxf_sp, m_spectrogram, sp_x, sp_y, maxfilter_s);
+  maxfilter_y(maxf_sp, sp_x, sp_y, maxfilter_s);
+
+  // find mean loudness of the smaxfiltered spectrogram
   double avg_loudness_d = 0;
   size_t num_elements = sp_x * sp_y;
   for (uint i = 0; i < sp_x; i++) {
@@ -268,14 +285,11 @@ auto Spectrogram<T>::maxima_minlistgcn_algorithm(int maxfilter_s, int gtn_s,
       avg_loudness_d = (static_cast<double>(num_elements) /
                         static_cast<double>(num_elements + 1)) *
                            avg_loudness_d +
-                       (static_cast<double>(m_spectrogram[i][j]) /
+                       (static_cast<double>(maxf_sp[i][j]) /
                         static_cast<double>(num_elements + 1));
     }
   }
   auto avg_loudness = static_cast<intensity_t>(avg_loudness_d);
-  // Apply max filters (the way they are implemented forces this order :/)
-  maxfilter_x(maxf_sp, m_spectrogram, sp_x, sp_y, maxfilter_s);
-  maxfilter_y(maxf_sp, sp_x, sp_y, maxfilter_s);
 
   CritSet_t dat;
 

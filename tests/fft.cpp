@@ -110,7 +110,8 @@ TYPED_TEST(FftTest, SingleColumnInput) {
 
   typename TestFixture::output_t expected = {{complex<TypeParam>(0, 0)},
                                              {complex<TypeParam>(0, 0)},
-                                             {complex<TypeParam>(4, 0)}};
+                                             {complex<TypeParam>(4, 0)},
+                                             {complex<TypeParam>(0, 0)}};
 
   ASSERT_EQ(result.size(), expected.size());
   for (size_t i = 0; i < result.size(); ++i) {

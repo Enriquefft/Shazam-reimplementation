@@ -3,15 +3,14 @@
 #include "utils.hpp"
 #include <complex>
 #include <vector>
-
-double PI = std::atan(1)*4;
+#include <numbers>
 
 template<typename T>
 void fft(std::vector<std::complex<T>>& a) {
     size_t n = a.size();
     if (n <= 1) return;
 
-	auto wn = std::exp(std::complex<T>(0,2*PI/n));
+	auto wn = std::exp(std::complex<T>(0,-2*std::numbers::pi/n));
 	auto w = std::complex<T>(1,0);
 
     // Divide
