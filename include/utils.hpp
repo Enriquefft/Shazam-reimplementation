@@ -7,7 +7,10 @@
 #include <iostream>
 #include <numeric>
 #include <string>
+#include <utility>
 #include <vector>
+
+static bool info = false;
 
 template <typename T> using matrix_t = std::vector<std::vector<T>>;
 
@@ -44,26 +47,74 @@ template <typename T> constexpr auto sum_vector(const matrix_t<T> &vec) -> T {
 }
 
 template <typename T>
-constexpr void vector_info(const std::vector<T> &vec, const std::string &name) {
-  if constexpr (is_complex<T>()) {
-    print("{} info:\tsize: {}, sum: {}", name, vec.size(),
-          printable_complex(sum_vector(vec)));
-  } else {
-    print("{} info:\tsize: {}, sum: {}", name, vec.size(), sum_vector(vec));
+auto position_weighted_sum(const std::vector<T> &matrix) -> T {
+  T sum = 0;
+
+  for (size_t i = 0; i < matrix.size(); ++i) {
+    sum += (i + 1) * matrix.at(i);
   }
+
+  return sum;
+}
+
+template <typename T>
+auto position_weighted_sum(const std::vector<std::vector<T>> &matrix) -> T {
+  T sum = 0;
+
+  for (size_t i = 0; i < matrix.size(); ++i) {
+    for (size_t j = 0; j < matrix[i].size(); ++j) {
+      // Weight the element by its position
+      sum += (i + 1) * (j + 1) * matrix.at(i).at(j);
+    }
+  }
+
+  return sum;
+}
+
+/// @brief Create an empty 2D matrix with the same dimensions.
+/// @param dimensions Dimensions of the matrix.
+/// @return 2D matrix of the specified dimensions.
+template <typename T>
+auto generate_matrix(std::pair<size_t, size_t> dimensions) -> matrix_t<T> {
+  size_t rows = dimensions.first;
+  size_t cols = dimensions.second;
+
+  return matrix_t<T>(rows, std::vector<T>(cols));
+}
+
+template <typename T>
+constexpr void vector_info(const std::vector<T> &vec, const std::string &name) {
+
+  if (!info) {
+    return;
+  }
+  std::string sum;
+
+  if constexpr (is_complex<T>()) {
+    sum = printable_complex(sum_vector(vec)); // + position_weighted_sum(vec));
+  } else {
+    sum = std::to_string(sum_vector(vec)); // + position_weighted_sum(vec));
+  }
+
+  print("{} info:\tsize: {}, sum: {}", name, vec.size(), sum);
 }
 
 template <typename T>
 constexpr void vector_info(const matrix_t<T> &vec, const std::string &name) {
+  if (!info) {
+    return;
+  }
+
+  std::string sum;
 
   if constexpr (is_complex<T>()) {
-    print("{} info:\tsize: {}, size.at(0): {}, sum: {}", name, vec.size(),
-          vec.at(0).size(), printable_complex(sum_vector(vec)));
+    sum = printable_complex(sum_vector(vec)); //+ position_weighted_sum(vec));
   } else {
-
-    print("{} info:\tsize: {}, size.at(0): {}, sum: {}", name, vec.size(),
-          vec.at(0).size(), sum_vector(vec));
+    sum = std::to_string(sum_vector(vec)); //+ position_weighted_sum(vec));
   }
+
+  print("{} info:\tsize: {} x {}, sum: {}", name, vec.size(), vec.at(0).size(),
+        sum);
 }
 
 template <typename T>

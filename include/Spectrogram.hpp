@@ -48,21 +48,6 @@ private:
                const std::vector<std::vector<T>> &fft_window)
       -> std::pair<std::vector<std::vector<std::complex<T>>>, size_t>;
 
-  /// @brief Create an empty 2D matrix with the same dimensions.
-  /// @param dimensions Dimensions of the matrix.
-  /// @return 2D matrix of the specified dimensions.
-  template <typename K>
-  static auto generate_matrix(std::pair<size_t, size_t> dimensions)
-      -> std::vector<std::vector<K>>;
-
-  /// @brief Frame a given audio data.
-  /// @param audiodata The audio data to frame.
-  /// @param frame_length Length of each frame.
-  /// @param hop_length Number of samples between frames.
-  /// @return 2D matrix with framed audio data.
-  static auto frame(const std::vector<T> &audiodata, size_t frame_length,
-                    size_t hop_length) -> std::vector<std::vector<T>>;
-
   /// @brief Call the window function.
   /// @param window Type of window function.
   /// @param n_points Number of points in the window.
@@ -192,6 +177,14 @@ public:
                    bool center = true,
                    const PADDING_MODE &padding_mode = PADDING_MODE::CONSTANT)
       -> std::vector<std::vector<std::complex<T>>>;
+
+  /// @brief Frame a given audio data.
+  /// @param audiodata The audio data to frame.
+  /// @param frame_length Length of each frame.
+  /// @param hop_length Number of samples between frames.
+  /// @return 2D matrix with framed audio data.
+  static auto frame(const std::vector<T> &audiodata, size_t frame_length,
+                    size_t hop_length) -> std::vector<std::vector<T>>;
 };
 
 template <std::floating_point T>

@@ -12,6 +12,20 @@ MAX_MEM_BLOCK = 2**8 * 2**10
 filename = "../assets/3. You & Me - Good & Evil.wav"
 
 
+def position_weighted_sum(array: np.ndarray):
+    if array.ndim == 1:
+        sum = 0
+        for i in range(array.size):
+            sum += (i + 1) * array[i]
+        return sum
+    elif array.ndim == 2:
+        sum = 0
+        for i in range(array.shape[0]):
+            for j in range(array.shape[1]):
+                sum += (i + 1) * (j + 1) * array[i, j]
+        return sum
+
+
 def hann(n_points: int):
     a = [0.5, 1.0 - 0.5]
     if n_points <= 1:
@@ -24,6 +38,11 @@ def hann(n_points: int):
         w += a[k] * np.cos(k * fac)
 
     return w[:-1]
+
+
+# print shape and sum + weighted sum
+def print_info(x: np.ndarray, name: str):
+    print(f"{name}: {x.shape}, {x.sum() + position_weighted_sum(x)}")
 
 
 def valid_audio(y: np.ndarray) -> bool:
@@ -60,8 +79,7 @@ def valid_audio(y: np.ndarray) -> bool:
     ValueError
         In any of the conditions specified above fails
 
-    Notes
-    -----
+    Notes -----
     This function caches at level 20.
 
     Examples
@@ -169,7 +187,9 @@ def dtype_r2c(d: DTypeLike, *, default: Optional[type] = np.complex64) -> DTypeL
     return np.dtype(mapping.get(dt, default))
 
 
-def frame2(x: np.ndarray, frame_length: int, hop_length: int) -> np.ndarray:
+def frame2(
+    x: np.ndarray, frame_length: int, hop_length: int, info: bool = False
+) -> np.ndarray:
     x = np.asarray(x)
 
     if x.ndim != 1:
@@ -182,11 +202,14 @@ def frame2(x: np.ndarray, frame_length: int, hop_length: int) -> np.ndarray:
 
     # Initialize the output array
     x_frames_shape = (frame_length, num_frames)
-    x_frames = np.empty(x_frames_shape, dtype=x.dtype)
+    x_frames = np.zeros(x_frames_shape, dtype=x.dtype)
+
 
     # Populate the output array with frames
     for i in range(num_frames):
         start = i * hop_length
+
+
         for j in range(frame_length):
             x_frames[j, i] = x[start + j]
 

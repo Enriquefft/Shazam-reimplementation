@@ -2,6 +2,7 @@ import numpy as np
 from librosa import load, stft as lib_stft, display, amplitude_to_db
 
 from stft import stft
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 
@@ -17,18 +18,22 @@ def plot(s, n):
     fig.savefig(str(n))
 
 
-filename = "../../assets/the_bidding.wav"
+assets_path = Path("../../assets")
+sounds: list[Path] = [
+    Path(assets_path / "1mb.wav"),
+    # Path(assets_path / "5mb.wav"),
+    # Path(assets_path / "10mb.wav"),
+    # Path(assets_path / "the_bidding.wav"),
+    # Path(assets_path / "long_wav.wav"),
+]
 
+for sound in sounds:
+    print(sound)
+    y, sr = load(sound, sr=None, dtype="float64")
+    s = stft(y)
 
-y, sr = load(filename, sr=None, dtype="float64")
-s = lib_stft(y)
-print(s.shape)
-print(s.sum())
-print(np.abs(s).sum())
+    s_default = lib_stft(y)
 
-s_default = lib_stft(y)
-
-# plot(s, 1)
-# plot(s_default, 2)
-
-print("STILL_EQUAL??", (s == s_default).all())
+    print("STILL_EQUAL??", (s == s_default).all())
+    print()
+    print()
