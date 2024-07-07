@@ -15,15 +15,15 @@ auto main() -> int {
   for (const auto &song : songs) {
 
     print("Hashing {}", song.string());
-    // Audio<TypeParam> audio(song);
+    Audio<TypeParam> audio(song);
     Spectrogram<TypeParam> spectrogram = Spectrogram<TypeParam>("assets/simple.csv");
-    // auto complex_spectrogram = Spectrogram<TypeParam>::stft(audio);
+    auto complex_spectrogram = Spectrogram<TypeParam>::stft(audio);
 
-    // std::complex<TypeParam> comp_sum = sum_vector(complex_spectrogram);
+    std::complex<TypeParam> comp_sum = sum_vector(complex_spectrogram);
 
-    // print("complex_spectrogram_sum: {}, {}", comp_sum.real(), comp_sum.imag());
-    // print("complex_spectrogram_shape: {}, {}", complex_spectrogram.size(),
-    //      complex_spectrogram.at(0).size());
+    print("complex_spectrogram_sum: {}, {}", comp_sum.real(), comp_sum.imag());
+    print("complex_spectrogram_shape: {}, {}", complex_spectrogram.size(),
+        complex_spectrogram.at(0).size());
 
     spectrogram.get_local_maximums();
     auto local_max = spectrogram.get_local_maximums();
