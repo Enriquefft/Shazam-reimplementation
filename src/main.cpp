@@ -8,7 +8,7 @@
 
 auto main() -> int {
 
-  std::vector<std::filesystem::path> songs = {"assets/1mb.wav"};
+  std::vector<std::filesystem::path> songs = {"assets/1mbmono.wav"};
 
   using TypeParam = double;
 
@@ -16,7 +16,7 @@ auto main() -> int {
 
     print("Hashing {}", song.string());
     Audio<TypeParam> audio(song);
-    Spectrogram<TypeParam> spectrogram = Spectrogram<TypeParam>("assets/simple.csv");
+    Spectrogram<TypeParam> spectrogram(audio);
     auto complex_spectrogram = Spectrogram<TypeParam>::stft(audio);
 
     std::complex<TypeParam> comp_sum = sum_vector(complex_spectrogram);

@@ -4,52 +4,45 @@
 #include <complex>
 #include <vector>
 
-template <typename T>
-constexpr void fft_recursive(std::vector<std::complex<T>> &input,
-                             bool inverse = false) {
+double PI = std::atan(1)*4;
 
-  size_t n = input.size();
-  if (n <= 1) {
-    return;
-  }
+template<typename T>
+void fft(std::vector<std::complex<T>>& a) {
+    size_t n = a.size();
+    if (n <= 1) return;
 
-  std::vector<std::complex<T>> even(n / 2);
-  std::vector<std::complex<T>> odd(n / 2);
-  for (size_t i = 0; i < n / 2; ++i) {
-    even[i] = input[2 * i];
-    odd[i] = input[2 * i + 1];
-  }
+	auto wn = std::exp(std::complex<T>(0,2*PI/n));
+	auto w = std::complex<T>(1,0);
 
-  fft_recursive(even, inverse);
-  fft_recursive(odd, inverse);
-
-  T angle = (inverse ? 2 : -2) * std::numbers::pi_v<T> / static_cast<T>(n);
-  std::complex<T> w(1);
-  std::complex<T> wn(std::cos(angle), std::sin(angle));
-  for (size_t k = 0; k < n / 2; ++k) {
-    input[k] = even[k] + w * odd[k];
-    input[k + n / 2] = even[k] - w * odd[k];
-    if (inverse) {
-      input[k] /= 2;
-      input[k + n / 2] /= 2;
+    // Divide
+    std::vector<std::complex<T>> even(n / 2);
+    std::vector<std::complex<T>> odd(n / 2);
+    for (int i = 0; i < n / 2; ++i) {
+        even[i] = a[i*2];
+        odd[i] = a[i*2 + 1];
     }
-    w *= wn;
-  }
+
+    // Conquer
+    fft(even);
+    fft(odd);
+
+    // Combine
+    for (size_t i = 0; i < n / 2; ++i) {
+        std::complex<T> t = w * odd[i];
+        a[i] = even[i] + t;
+        a[i + n/2] = even[i] - t;
+		w = w*wn;
+    }
 }
 
-template <std::floating_point T>
-constexpr auto fft(const std::vector<T> &input)
-    -> std::vector<std::complex<T>> {
-
-  size_t n = input.size();
-  std::vector<std::complex<T>> data(n);
-  for (size_t i = 0; i < n; ++i) {
-    data[i] = std::complex<T>(input[i], 0);
-  }
-
-  fft_recursive(data);
-
-  return data;
+template<typename T>
+std::vector<std::complex<T>> fft_real_inputs(const std::vector<T>& inputs)
+{
+  std::vector<std::complex<T>> inputsComplex(inputs.size());
+  for (size_t i = 0; i<inputs.size();i++)
+    inputsComplex[i] = std::complex<T>(inputs[i],0);
+  fft(inputsComplex);
+  return inputsComplex;
 }
 
 template <std::floating_point T>
@@ -63,9 +56,8 @@ constexpr auto matrix_dft(const matrix_t<T> &matrix)
 
   // Perform 1D DFT on each row
   for (size_t k = 0; k < rows; ++k) {
-    result[k] = fft(matrix[k]);
+    result[k] = fft_real_inputs(matrix[k]);
   }
-
     return result;
 }
 
