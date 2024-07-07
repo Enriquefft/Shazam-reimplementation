@@ -1,0 +1,26 @@
+Esta carpeta tine scripts que fui usando para probar que tan bien funcan los algoritmos.
+
+Como el otro tim hace el code del espectrograma,la idea es generar un espectrograma en py, convertir la imagen a un csv, leer ese csv en CPP y emitir un monton de 'puntos criticos'. Luego, tomar esos puntos y plottearlos para ver si tienen sentido.
+Los csv's de imagenes se ven como:
+
+size_x,size_y
+0,5,3,65,3,65,3... (size_x)
+3,4,53,4,5,6,3,...
+...
+(size_y)
+
+Los de puntos criticos son
+
+time1,hertz1
+time2,hertz2
+...
+
+csvtoimg.py - muestra el csv (cambiar nombre en linea 29)
+image2csv.py - toma un png y lo convierte en un csv. los nombres configuralos al final
+tospectrogram.py - genera el espectrograma. Al fondo cambias el archivo de audio y el nombre del de salida.
+
+plot2series.py - plottea 2 csv's de puntos uno sobre otro
+
+scipys_answer.py - trata de hacer la deteccion de picos con scipy, pero no funciona bien
+
+
