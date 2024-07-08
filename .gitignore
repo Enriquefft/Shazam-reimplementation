@@ -209,4 +209,3 @@ cython_debug/
 #.idea/
 
 # random/test files in anyone's local
-assets/the_bidding_noisy_sample.wav

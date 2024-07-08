@@ -6,7 +6,7 @@
 #include <cerrno>
 
 template<std::floating_point T>
-void csvWriteSpectrogram(Spectrogram<T>& spec,std::string to_write)
+void csvWriteSpectrogram(const Spectrogram<T>& spec,std::string to_write)
 {
 	auto sp = spec.get_spectrogram();
 	// assume spectrogram is well defined, hence it has a 0th element
@@ -32,7 +32,7 @@ void csvWriteSpectrogram(Spectrogram<T>& spec,std::string to_write)
 }
 
 template<std::floating_point T>
-void csvWriteSpectrogram(std::vector<std::vector<T>> sp,std::string to_write)
+void csvWriteSpectrogram(const std::vector<std::vector<T>>& sp,std::string to_write)
 {
 	// assume spectrogram is well defined, hence it has a 0th element
 	size_t sx,sy;
@@ -55,7 +55,7 @@ void csvWriteSpectrogram(std::vector<std::vector<T>> sp,std::string to_write)
 }
 
 template<typename T>
-void csvWriteLocalMaxima(std::vector<T> pts,std::string to_write)
+void csvWriteLocalMaxima(const std::vector<T>& pts,std::string to_write)
 {
 
 	std::ofstream f;
@@ -65,6 +65,21 @@ void csvWriteLocalMaxima(std::vector<T> pts,std::string to_write)
 	for (const T& i:pts)
 	{
 		f << i.time << ',' << i.hertz << ',' << i.intensity << '\n';
+	}
+
+	f.close();
+}
+
+
+void csvWriteHashes(std::vector<std::pair<uint32_t,size_t>>& hashes,std::string to_write)
+{
+
+	std::ofstream f;
+	f.open(to_write,std::fstream::out | std::fstream::trunc);
+	
+	for (const auto& i: hashes)
+	{
+		f << i.first << ',' << i.second << '\n';
 	}
 
 	f.close();

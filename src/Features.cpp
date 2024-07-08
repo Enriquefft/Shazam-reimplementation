@@ -205,8 +205,9 @@ auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
   // the API
 
   // return maxima_gtn_algorithm(30,0.5f);
-  return maxima_minlistgcn_algorithm(MAX_FILTER, GTN_WINDOW_SIZE,
+  m_features = maxima_minlistgcn_algorithm(MAX_FILTER, GTN_WINDOW_SIZE,
                                      MAXIMA_THRESHOLD);
+  return m_features;
   // return maxima_minlist_algorithm_optimized(MAX_FILTER);
 }
 
@@ -340,6 +341,64 @@ auto Spectrogram<T>::maxima_gtn_algorithm(int neighbourhood, float thrsh)
     }
   }
   return dat;
+}
+
+///////////////////////////////////// HASHING ////////////////////////////////////////
+
+uint32_t assemble_hash(size_t h1, size_t h2, size_t deltaT)
+{
+  // this has last 10 bits on
+  const uint16_t mask = 0x3FF;
+
+  h1 = (h1 & mask) << 20;
+  h2 = (h2 & mask) << 10;
+  deltaT = deltaT & mask;
+  return h1 | h2 | deltaT;
+}
+
+template <std::floating_point T> 
+std::vector<typename Spectrogram<T>::DataPoint> Spectrogram<T>::select_pivots_naive(
+    const std::vector<typename Spectrogram<T>::DataPoint>& pts)
+{
+  return pts;
+}
+
+template <std::floating_point T>
+std::vector<std::pair<uint32_t,size_t>> Spectrogram<T>::generate_hashes_naive(
+  std::vector<typename Spectrogram<T>::DataPoint>& pivots,
+  std::vector<typename Spectrogram<T>::DataPoint>& localmaxima,
+  size_t boxHeight, size_t boxWidth, size_t boxDisplacement
+)
+{
+  std::vector<std::pair<uint32_t,size_t>> hashes;
+  for (const auto& i:pivots)
+  {
+    size_t boxXmax, boxXmin, boxYmax, boxYmin;
+    boxXmin = i.time + boxDisplacement;
+    boxYmin = i.hertz - (boxHeight/2);
+    boxXmax = boxXmin + boxWidth;
+    boxYmax = boxYmin + boxHeight;
+    for (const auto& j:localmaxima)
+    {
+      if ((j.time >= boxXmin && j.time <= boxXmax) && 
+          (j.hertz >= boxYmin && j.hertz <= boxYmax))
+          {
+            size_t deltaT = i.time < j.time? j.time - i.time:i.time - j.time;
+            uint32_t hash = assemble_hash(i.hertz,j.hertz,deltaT);
+            hashes.push_back(std::make_pair(hash,i.time));
+          }
+    }
+  }
+  return hashes;
+}
+
+template <std::floating_point T> 
+std::vector<std::pair<uint32_t,size_t>> Spectrogram<T>::get_hashes()
+{
+  
+  auto pivots = select_pivots_naive(m_features);
+  return generate_hashes_naive(pivots,m_features, 200, 500,30);
+
 }
 
 // Explicit instantiation
