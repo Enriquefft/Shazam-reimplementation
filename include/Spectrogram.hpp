@@ -202,5 +202,6 @@ explicit Spectrogram(const Audio<T> &audio) -> Spectrogram<T>;
 
 extern template class Spectrogram<float>;
 extern template class Spectrogram<double>;
+extern template class Spectrogram<long double>;
 
 #endif // INCLUDE_SPECTROGRAM_HPP_

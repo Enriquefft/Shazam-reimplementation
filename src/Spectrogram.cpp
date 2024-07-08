@@ -1,7 +1,6 @@
 #include "Spectrogram.hpp"
 #include <algorithm>
 #include <cmath>
-#include <format>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -27,23 +26,19 @@ auto Spectrogram<T>::block_wise_stft(matrix_t<std::complex<T>> &stft_matrix,
                                      const size_t &off_start)
     -> pair<matrix_t<std::complex<T>>, size_t> {
 
-  size_t y_frames_cols = audiodata_frames[0].size();
+  size_t y_frames_cols = audiodata_frames.at(0).size();
 
   for (size_t bl_s = 0; bl_s < y_frames_cols; bl_s += n_columns) {
 
     size_t bl_t = std::min(bl_s + n_columns, y_frames_cols);
-    matrix_t<T> block_frames(audiodata_frames.size(),
-                             std::vector<T>(bl_t - bl_s));
-    for (size_t i = 0; i < audiodata_frames.size(); ++i) {
-      std::copy(audiodata_frames.at(i).begin() + static_cast<int64_t>(bl_s),
-                audiodata_frames.at(i).begin() + static_cast<int64_t>(bl_t),
-                block_frames.at(i).begin());
-    }
+
+    auto block_frames = slice_cols(audiodata_frames, bl_s, bl_t);
+
     auto fft_result = row_dft(multiply(fft_window, block_frames));
 
     for (size_t i = 0; i < stft_matrix.size(); ++i) {
-      for (size_t j = 0; j < fft_result[i].size(); ++j) {
-        stft_matrix[i][bl_s + off_start + j] = fft_result[i][j];
+      for (size_t j = bl_s + off_start; j < bl_t + off_start; ++j) {
+        stft_matrix[i][j] = fft_result[i][j - bl_s - off_start];
       }
     }
   }
@@ -58,7 +53,7 @@ auto Spectrogram<T>::padding_stft(matrix_t<std::complex<T>> &stft_matrix,
                                   const matrix_t<T> &fft_window)
     -> pair<matrix_t<std::complex<T>>, size_t> {
 
-  vector<vector<std::complex<T>>> fft_pre =
+  matrix_t<std::complex<T>> fft_pre =
       row_dft(multiply(fft_window, audiodata_frames_pre));
 
   vector<vector<std::complex<T>>> fft_post =
@@ -90,6 +85,7 @@ auto Spectrogram<T>::padding_stft(matrix_t<std::complex<T>> &stft_matrix,
 template <floating_point T>
 Spectrogram<T>::Spectrogram(const Audio<T> &audio)
     : m_spectrogram({}), m_features({}) {
+
   auto stft_matrix = stft(audio);
   m_spectrogram = abs(stft_matrix);
 
@@ -231,15 +227,14 @@ auto Spectrogram<T>::get_window(const WINDOW_FUNCT &window,
 template <floating_point T>
 auto Spectrogram<T>::frame(const vector<T> &audiodata, size_t frame_length,
                            size_t hop_length) -> matrix_t<T> {
-  if (audiodata.size() < static_cast<size_t>(frame_length)) {
+
+  if (audiodata.size() < frame_length) {
     throw std::invalid_argument(
-        std::format("Input is too short for the given frame length. with "
-                    "audiodata_size: {} & frame_length_size: {}",
-                    audiodata.size(), frame_length));
+        "Input is too short for the given frame length.");
   }
 
   // Calculate the number of frames
-  auto num_frames = 1 + (audiodata.size() - frame_length) / hop_length;
+  size_t num_frames = 1 + (audiodata.size() - frame_length) / hop_length;
 
   // Initialize the output vector
   auto frames = generate_matrix<T>({frame_length, num_frames});
@@ -427,7 +422,7 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
     audiodata_frames_pre = frame(audiodata_pre, n_fft, effective_hop_length);
 
     // Trim this down to the exact number of frames we should have
-    slice_cols(audiodata_frames_pre, start_k);
+    slice_cols(audiodata_frames_pre, 0, start_k);
 
     extra = audiodata_frames_pre.at(0).size();
 
@@ -467,6 +462,8 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
     }
   }
 
+  info = true;
+
   auto audiodata_frames = frame(
       vector(audiodata.begin() + static_cast<int64_t>(start), audiodata.end()),
       n_fft, effective_hop_length);
@@ -476,14 +473,6 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
 
   matrix_t<std::complex<T>> stft_matrix =
       generate_matrix<std::complex<T>>(shape);
-
-  info = true;
-  vector_info(fft_window, "fft_window");
-  vector_info(audiodata_frames, "audiodata_frames");
-  vector_info(audiodata_frames_pre, "audiodata_frames_pre");
-  vector_info(audiodata_frames_post, "audiodata_frames_post");
-  vector_info(stft_matrix, "stft_matrix");
-  print("extra: {}", extra);
 
   // Proccesss the extra padding frames with fft if needed
   size_t off_start = 0;
@@ -511,3 +500,4 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
 
 template class Spectrogram<float>;
 template class Spectrogram<double>;
+template class Spectrogram<long double>;

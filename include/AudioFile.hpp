@@ -19,5 +19,6 @@ public:
 
 extern template class Audio<float>;
 extern template class Audio<double>;
+extern template class Audio<long double>;
 
 #endif // INCLUDE_AUDIOFILE_HPP_

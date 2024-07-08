@@ -1,4 +1,5 @@
 #include "AudioFile.hpp"
+#include "utils.hpp"
 #include <filesystem>
 #include <sndfile.h>
 #include <stdexcept>
@@ -9,6 +10,8 @@ using std::vector;
 template <std::floating_point T>
 Audio<T>::Audio(const std::filesystem::path &path,
                 const std::optional<float> &sample_rate) {
+
+  info = true;
 
   if (sample_rate != std::nullopt) {
     throw std::invalid_argument("only native sample_rate is supported");
@@ -21,24 +24,32 @@ Audio<T>::Audio(const std::filesystem::path &path,
     throw std::invalid_argument("Could not read file: " + path.string());
   }
 
-  size_t frame_count = sound_file_info.frames;
-  size_t original_frame_count = frame_count * sound_file_info.channels;
+  auto channel_count = static_cast<size_t>(sound_file_info.channels);
+  auto frame_count = static_cast<size_t>(sound_file_info.frames);
+  size_t original_frame_count = frame_count * channel_count;
   m_sample_rate = sound_file_info.samplerate;
-  size_t channel_count = sound_file_info.channels;
 
   m_audiodata.resize(frame_count);
-
-  sf_count_t nread = 0;
 
   vector<T> original_audio_frames(original_frame_count);
 
   if constexpr (std::is_same_v<T, double>) {
-    nread = sf_read_double(sound_file, original_audio_frames.data(),
-                           original_frame_count);
+    sf_read_double(sound_file, original_audio_frames.data(),
+                   static_cast<int64_t>(original_frame_count));
   }
   if constexpr (std::is_same_v<T, float>) {
-    nread = sf_read_float(sound_file, original_audio_frames.data(),
-                          original_frame_count);
+    sf_read_float(sound_file, original_audio_frames.data(),
+                  static_cast<int64_t>(original_frame_count));
+  }
+  if constexpr (std::is_same_v<T, long double>) {
+    vector<double> double_audio_frames(original_frame_count);
+    sf_read_double(sound_file, double_audio_frames.data(),
+                   static_cast<int64_t>(original_frame_count));
+
+    for (size_t i = 0; i < original_frame_count; i++) {
+      original_audio_frames.at(i) =
+          static_cast<long double>(double_audio_frames.at(i));
+    }
   }
 
   for (size_t i = 0; i < frame_count; i++) {
@@ -56,3 +67,4 @@ Audio<T>::Audio(const std::filesystem::path &path,
 // Explicit instantiation
 template class Audio<float>;
 template class Audio<double>;
+template class Audio<long double>;

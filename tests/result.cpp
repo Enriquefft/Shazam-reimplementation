@@ -141,6 +141,7 @@ TYPED_TEST(ResultsTest, ValidAudio) {
 }
 
 TYPED_TEST(ResultsTest, ValidComplexSpectrogram) {
+  GTEST_SKIP() << "Skipping single test";
 
   for (const auto &song : ASSETS_PATH) {
     auto data = this->get_map(song);

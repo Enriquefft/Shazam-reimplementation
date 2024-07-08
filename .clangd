@@ -22,6 +22,7 @@ Diagnostics:
         hicpp-avoid-c-arrays,
         cppcoreguidelines-avoid-c-arrays,
         cppcoreguidelines-avoid-magic-numbers,
+        bugprone-easily-swappable-parameters
       ]
     CheckOptions:
       misc-non-private-member-variables-in-classes.IgnorePublicMemberVariables: 1

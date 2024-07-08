@@ -3,9 +3,9 @@
 
 #include <complex>
 #include <cstdint>
-#include <format>
 #include <iostream>
 #include <numeric>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -21,14 +21,15 @@ template <typename T> constexpr auto is_complex() -> bool {
   return IsComplexT<T>::value;
 }
 
-template <typename... Args>
-constexpr void print(std::string_view fmt, Args &&...args) {
-  std::cout << std::vformat(fmt, std::make_format_args(args...)) << std::endl;
-}
-
 template <std::floating_point T>
-constexpr auto printable_complex(const std::complex<T> &num) -> std::string {
-  return std::format("({}, {})", std::real(num), std::imag(num));
+constexpr auto format_number(const T &num) -> std::string {
+  return std::to_string(num);
+}
+template <std::floating_point T>
+auto format_number(const std::complex<T> &num) -> std::string {
+  std::ostringstream oss;
+  oss << '(' << std::real(num) << ", " << std::imag(num) << ')';
+  return oss.str();
 }
 
 // Function to sum elements in a vector<T>
@@ -46,31 +47,6 @@ template <typename T> constexpr auto sum_vector(const matrix_t<T> &vec) -> T {
   return total_sum;
 }
 
-template <typename T>
-auto position_weighted_sum(const std::vector<T> &matrix) -> T {
-  T sum = 0;
-
-  for (size_t i = 0; i < matrix.size(); ++i) {
-    sum += (i + 1) * matrix.at(i);
-  }
-
-  return sum;
-}
-
-template <typename T>
-auto position_weighted_sum(const std::vector<std::vector<T>> &matrix) -> T {
-  T sum = 0;
-
-  for (size_t i = 0; i < matrix.size(); ++i) {
-    for (size_t j = 0; j < matrix[i].size(); ++j) {
-      // Weight the element by its position
-      sum += (i + 1) * (j + 1) * matrix.at(i).at(j);
-    }
-  }
-
-  return sum;
-}
-
 /// @brief Create an empty 2D matrix with the same dimensions.
 /// @param dimensions Dimensions of the matrix.
 /// @return 2D matrix of the specified dimensions.
@@ -83,38 +59,38 @@ auto generate_matrix(std::pair<size_t, size_t> dimensions) -> matrix_t<T> {
 }
 
 template <typename T>
-constexpr void vector_info(const std::vector<T> &vec, const std::string &name) {
+constexpr void vector_info(const std::vector<T> &vec, const std::string &name,
+                           bool add_weighted_sum = false) {
 
   if (!info) {
     return;
   }
-  std::string sum;
-
-  if constexpr (is_complex<T>()) {
-    sum = printable_complex(sum_vector(vec)); // + position_weighted_sum(vec));
-  } else {
-    sum = std::to_string(sum_vector(vec)); // + position_weighted_sum(vec));
+  T sum = sum_vector(vec);
+  if (add_weighted_sum) {
+    throw std::runtime_error("Weighted sum not implemented.");
   }
 
-  print("{} info:\tsize: {}, sum: {}", name, vec.size(), sum);
+  std::string sum_str = format_number(sum);
+
+  std::cout << name << " info:\tsize: " << vec.size() << ", sum: " << sum_str
+            << std::endl;
 }
 
 template <typename T>
-constexpr void vector_info(const matrix_t<T> &vec, const std::string &name) {
+constexpr void vector_info(const matrix_t<T> &vec, const std::string &name,
+                           bool add_weighted_sum = false) {
   if (!info) {
     return;
   }
 
-  std::string sum;
-
-  if constexpr (is_complex<T>()) {
-    sum = printable_complex(sum_vector(vec)); //+ position_weighted_sum(vec));
-  } else {
-    sum = std::to_string(sum_vector(vec)); //+ position_weighted_sum(vec));
+  T sum = sum_vector(vec);
+  if (add_weighted_sum) {
+    throw std::runtime_error("Weighted sum not implemented.");
   }
+  std::string sum_str = format_number(sum);
 
-  print("{} info:\tsize: {} x {}, sum: {}", name, vec.size(), vec.at(0).size(),
-        sum);
+  std::cout << name << " info:\tsize: " << vec.size() << " x "
+            << vec.at(0).size() << ", sum: " << sum_str << std::endl;
 }
 
 template <typename T>
@@ -169,24 +145,45 @@ abs(const std::vector<std::vector<std::complex<T>>> &complex_matrix)
 
 template <std::floating_point T>
 constexpr void slice_cols(std::vector<std::vector<T>> &matrix,
-                          const size_t &slice_idx) {
+                          const size_t &begin_idx, const size_t &end_idx) {
   for (auto &row : matrix) {
-    row.resize(slice_idx);
+    if (end_idx <= row.size()) {
+      row = std::vector<T>(row.begin() + static_cast<int64_t>(begin_idx),
+                           row.begin() + static_cast<int64_t>(end_idx));
+    } else {
+      // Handle the case where end_idx is out of bounds
+      row = std::vector<T>(row.begin() + static_cast<int64_t>(begin_idx),
+                           row.end());
+    }
   }
 }
+
 template <std::floating_point T>
 constexpr auto slice_cols(const std::vector<std::vector<T>> &matrix,
-                          const size_t &slice_idx)
+                          const size_t &begin_idx, const size_t &end_idx)
     -> std::vector<std::vector<T>> {
 
   auto rows = matrix.size();
-  std::vector<std::vector<int>> new_matrix(rows, std::vector<int>(slice_idx));
-  // Copy the elements to the new matrix
-  for (size_t i = 0; i < rows; ++i) {
-    for (size_t j = 0; j < slice_idx; ++j) {
-      new_matrix[i][j] = matrix[i][j];
+  std::vector<std::vector<T>> new_matrix(rows);
+
+  if (begin_idx > end_idx || begin_idx >= matrix.at(0).size()) {
+    return new_matrix;
+  }
+
+  for (int64_t i = 0; i < static_cast<int64_t>(rows); ++i) {
+    if (end_idx <= matrix[i].size()) {
+      new_matrix.at(i) =
+          std::vector<T>(matrix[i].begin() + static_cast<int64_t>(begin_idx),
+                         matrix[i].begin() + static_cast<int64_t>(end_idx));
+    } else {
+      // Handle the case where end_idx is out of bounds
+      new_matrix.at(i) =
+          std::vector<T>(matrix[i].begin() + static_cast<int64_t>(begin_idx),
+                         matrix.at(i).end());
     }
   }
+
+  return new_matrix;
 }
 
 template <std::floating_point T>
@@ -194,12 +191,23 @@ constexpr auto multiply(const std::vector<std::vector<T>> &arr1,
                         const std::vector<std::vector<T>> &mat1)
     -> std::vector<std::vector<T>> {
 
-  std::vector<std::vector<T>> result(arr1.size(),
-                                     std::vector<T>(mat1[0].size()));
+  if (arr1.size() != mat1.size()) {
+    throw std::runtime_error("Matrix multiplication not possible.");
+  }
 
-  for (size_t i = 0; i < arr1.size(); ++i) {
-    for (size_t j = 0; j < mat1[0].size(); ++j) {
-      result[i][j] = arr1[i][0] * mat1[i][j];
+  if (arr1.at(0).size() != 1) {
+    throw std::runtime_error(
+        "Matrix multiplication not possible. (fist arg is not a column vector");
+  }
+
+  auto rows = arr1.size();
+  auto cols = mat1.at(0).size();
+
+  auto result = generate_matrix<T>({rows, cols});
+
+  for (size_t i = 0; i < rows; ++i) {
+    for (size_t j = 0; j < cols; ++j) {
+      result.at(i).at(j) = arr1.at(i).at(0) * mat1.at(i).at(j);
     }
   }
 

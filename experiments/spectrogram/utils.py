@@ -42,7 +42,7 @@ def hann(n_points: int):
 
 # print shape and sum + weighted sum
 def print_info(x: np.ndarray, name: str):
-    print(f"{name}: {x.shape}, {x.sum() + position_weighted_sum(x)}")
+    print(f"{name}: {x.shape}, {x.sum() }")
 
 
 def valid_audio(y: np.ndarray) -> bool:
@@ -204,11 +204,9 @@ def frame2(
     x_frames_shape = (frame_length, num_frames)
     x_frames = np.zeros(x_frames_shape, dtype=x.dtype)
 
-
     # Populate the output array with frames
     for i in range(num_frames):
         start = i * hop_length
-
 
         for j in range(frame_length):
             x_frames[j, i] = x[start + j]

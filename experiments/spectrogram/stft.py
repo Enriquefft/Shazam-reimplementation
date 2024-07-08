@@ -272,7 +272,7 @@ def stft(
             y_post = np.pad(y_post_trimmed, padding, mode=pad_mode)
 
             y_frames_post = utils.frame2(
-                y_post, frame_length=n_fft, hop_length=hop_length, info=True
+                y_post, frame_length=n_fft, hop_length=hop_length, info=False
             )
 
             # How many extra frames do we have from the tail?
@@ -290,7 +290,15 @@ def stft(
         dtype = utils.dtype_r2c(y.dtype)
 
     # Window the time series.
-    y_frames = utils.frame2(y[..., start:], frame_length=n_fft, hop_length=hop_length)
+    y_frames = utils.frame2(
+        y[..., start:], frame_length=n_fft, hop_length=hop_length, info=True
+    )
+
+    # print("frame_length", n_fft)
+    # print("hop_length", hop_length)
+    # utils.print_info(y, "audiodata info")
+    # utils.print_info(y[..., start:], "passed audiodata")
+    # utils.print_info(y_frames, "y_frames")
 
     # Pre-allocate the STFT matrix
     shape = list(y_frames.shape)
@@ -307,12 +315,17 @@ def stft(
     utils.print_info(y_frames, "y_frames")
     utils.print_info(y_frames_pre, "y_frames_pre")
     utils.print_info(y_frames_post, "y_frames_post")
-    utils.print_info(stft_matrix, "stft_matrix")
-    print("extra", extra)
+
+    print("starting fft\n")
 
     # Fill in the warm-upw
     fft_pre = np.fft.rfft(fft_window * y_frames_pre, axis=-2)
     fft_post = np.fft.rfft(fft_window * y_frames_post, axis=-2)
+
+    utils.print_info(fft_pre, "fft_pre")
+    utils.print_info(fft_post, "fft_post")
+    utils.print_info(fft_window * y_frames_pre, "fft_window * y_frames_pre")
+    utils.print_info(fft_window * y_frames_post, "fft_window * y_frames_post")
 
     if center and extra > 0:
         off_start = y_frames_pre.shape[-1]
@@ -327,10 +340,27 @@ def stft(
     n_columns = int(MAX_MEM_BLOCK // (np.prod(y_frames.shape[:-1]) * y_frames.itemsize))
     n_columns = max(n_columns, 1)
 
+    # Compute the STFT matrix column
+    print("Computing STFT matrix columns\n")
+    utils.print_info(stft_matrix, "stft_matrix")
+
     for bl_s in range(0, y_frames.shape[-1], n_columns):
         bl_t = min(bl_s + n_columns, y_frames.shape[-1])
 
-        stft_matrix[..., bl_s + off_start : bl_t + off_start] = np.fft.rfft(
-            fft_window * y_frames[..., bl_s:bl_t], axis=-2
+        block_fft = np.fft.rfft(
+            fft_window * y_frames[..., bl_s:bl_t], axis=-2, norm="forward"
         )
+
+        stft_matrix[..., bl_s + off_start : bl_t + off_start] = block_fft
+
+        # show every 100 iterations
+        if bl_s % (n_columns * 200) == 0:
+            print(f"STFT matrix columns: {bl_s} to {bl_t}")
+            utils.print_info(stft_matrix, "stft_matrix")
+            utils.print_info(block_fft, "block_fft")
+            utils.print_info(fft_window * y_frames[..., bl_s:bl_t], "block_fft_input")
+            print()
+
+    utils.print_info(stft_matrix, "stft_matrix")
+
     return stft_matrix
