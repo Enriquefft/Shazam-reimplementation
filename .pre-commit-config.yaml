@@ -17,5 +17,5 @@ repos:
       - id: cpplint
         args:
           [
-            "--filter=-whitespace,-legal/copyright,-runtime/references,-build/include_order",
+            "--filter=-whitespace,-legal/copyright,-runtime/references,-build/include_order,-build/c++11",
           ]
