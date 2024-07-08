@@ -133,15 +133,14 @@ private:
                    int neigh);
   void maxfilter_y(spdata_t &maxfiltered_spectrogram, size_t sp_x, size_t sp_y,
                    int neigh);
-/// ========================= HASHING =====================
-std::vector<std::pair<uint32_t,size_t>> generate_hashes_naive(
-  std::vector<typename Spectrogram<T>::DataPoint>& pivots,
-  std::vector<typename Spectrogram<T>::DataPoint>& localmaxima,
-  size_t boxHeight, size_t boxWidth, size_t boxDisplacement
-);
+  /// ========================= HASHING =====================
+  std::vector<std::pair<uint32_t, size_t>> generate_hashes_naive(
+      std::vector<typename Spectrogram<T>::DataPoint> &pivots,
+      std::vector<typename Spectrogram<T>::DataPoint> &localmaxima,
+      size_t boxHeight, size_t boxWidth, size_t boxDisplacement);
 
-std::vector<typename Spectrogram<T>::DataPoint> select_pivots_naive(
-    const std::vector<typename Spectrogram<T>::DataPoint>& pts);
+  std::vector<typename Spectrogram<T>::DataPoint> select_pivots_naive(
+      const std::vector<typename Spectrogram<T>::DataPoint> &pts);
 
 public:
   /// @brief Constructor to generate the Spectrogram from audio data.
@@ -156,7 +155,7 @@ public:
   auto get_x() -> size_t;
   auto get_y() -> size_t;
 
-  auto get_hashes() -> std::vector<std::pair<uint32_t,size_t>>;
+  auto get_hashes() -> std::vector<std::pair<uint32_t, size_t>>;
 
   /// @brief Get the generated spectrogram.
   /// @return 2D matrix of the spectrogram.
@@ -193,8 +192,6 @@ public:
   /// @return 2D matrix with framed audio data.
   static auto frame(const std::vector<T> &audiodata, size_t frame_length,
                     size_t hop_length) -> std::vector<std::vector<T>>;
-
-
 };
 
 template <std::floating_point T>
