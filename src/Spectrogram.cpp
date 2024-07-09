@@ -440,12 +440,8 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
 
       auto audiodata_post = pad(audiodata_trimmed_post, padding, padding_mode);
 
-      info = true;
-
       audiodata_frames_post =
           frame(audiodata_post, n_fft, effective_hop_length);
-
-      info = false;
 
       // How many extra frames do we have from the tail?
       extra += audiodata_frames_post.at(0).size();
@@ -461,8 +457,6 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
       audiodata_frames_post = generate_matrix<T>(post_shape);
     }
   }
-
-  info = true;
 
   auto audiodata_frames = frame(
       vector(audiodata.begin() + static_cast<int64_t>(start), audiodata.end()),

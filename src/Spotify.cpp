@@ -1,8 +1,6 @@
 #include "Spotify.hpp"
 #include <cpr/api.h>
 #include <cstdlib>
-#include <format>
-#include <iostream>
 #include <nlohmann/json.hpp>
 #include <string_view>
 

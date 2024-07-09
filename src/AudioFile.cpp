@@ -1,5 +1,4 @@
 #include "AudioFile.hpp"
-#include "utils.hpp"
 #include <filesystem>
 #include <sndfile.h>
 #include <stdexcept>
@@ -10,8 +9,6 @@ using std::vector;
 template <std::floating_point T>
 Audio<T>::Audio(const std::filesystem::path &path,
                 const std::optional<float> &sample_rate) {
-
-  info = true;
 
   if (sample_rate != std::nullopt) {
     throw std::invalid_argument("only native sample_rate is supported");

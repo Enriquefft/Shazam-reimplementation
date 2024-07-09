@@ -64,11 +64,9 @@ target_compile_options(
             -Wno-c++20-extensions
             -Wno-c99-extensions
             -Wno-zero-as-null-pointer-constant
-
             -Wno-padded
             -Wno-global-constructors
             -Wno-exit-time-destructors
-
             # Temporarily removed due to bug upstream
             # (https://github.com/llvm/llvm-project/issues/59572)
             -Wno-unused-macros
@@ -144,7 +142,7 @@ FetchContent_Declare(
   GIT_TAG 3b15fa82ea74739b574d705fea44959b58142eb8
   SYSTEM)
 FetchContent_MakeAvailable(cpr)
-target_link_libraries(${PROJECT_NAME} PUBLIC cpr::cpr)
+target_link_libraries(${PROJECT_NAME} PRIVATE cpr::cpr)
 
 # Ctest
 FetchContent_Declare(
@@ -152,7 +150,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG f8d7d77c06936315286eb55f8de22cd23c188571)
 
-target_link_libraries(${PROJECT_APP} PRIVATE ${PROJECT_NAME} common)
+target_link_libraries(${PROJECT_APP} PRIVATE ${PROJECT_NAME} common cpr::cpr)
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt

@@ -14,7 +14,7 @@
 
       devShell = pkgs: {
 
-        # stdenv = pkgs.llvmPackages_latest.stdenv;
+        stdenv = pkgs.llvmPackages_17.stdenv;
 
         packages = with pkgs; [
 

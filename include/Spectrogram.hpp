@@ -21,14 +21,14 @@ enum class PADDING_MODE { CONSTANT };
 /// @brief Class to generate and manipulate spectrograms from audio data.
 template <std::floating_point T> class Spectrogram {
   using intensity_t = T;
-  using hertz_t = size_t;
+  using hertz_t = uint32_t;
   using time_t = size_t;
 
 private:
   /// @brief Structure to hold spectrogram data points.
   struct DataPoint {
-    size_t hertz;          ///< Frequency bin.
-    size_t time;           ///< Time bin.
+    hertz_t hertz;         ///< Frequency bin.
+    time_t time;           ///< Time bin.
     intensity_t intensity; ///< Intensity of the frequency at the given time.
   };
 
@@ -113,34 +113,42 @@ private:
       -> std::vector<DataPoint>;
   /// @brief get local maxima defined as all points that are greater that those
   /// of their neighborhood
-  auto maxima_gtn_algorithm(int neighbourhood, float thrsh)
+  auto maxima_gtn_algorithm(int neighbourhood, T thrsh)
       -> std::vector<DataPoint>;
 
-  inline auto is_max_in_neigh(size_t x_max, size_t y_max, size_t x, size_t y,
-                              int n, intensity_t thrsh, const spdata_t &sp)
-      -> bool;
+  inline auto is_max_in_neighborhood(size_t max_x, size_t max_y,
+                                     size_t current_x, size_t current_y,
+                                     int neighborhood_size,
+                                     intensity_t threshold,
+                                     const spdata_t &sp_data) -> bool;
   inline auto peak_filter_minlist(const intensity_t &maxd,
                                   const intensity_t &spd) -> bool;
-  inline auto peak_filter_minlist_gtn(const size_t &x, const size_t &y,
-                                      const spdata_t &mf, const spdata_t &sp,
-                                      const size_t &x_max, const size_t &y_max,
-                                      const int &neigh,
-                                      const intensity_t &thresh) -> bool;
-  auto max_in_neigh(size_t x_max, size_t y_max, uint x, uint y, int n,
-                    const spdata_t &sp) -> intensity_t;
+  inline auto peak_filter_minlist_gtn(const size_t &current_x,
+                                      const size_t &current_y,
+                                      const spdata_t &main_filter,
+                                      const spdata_t &sp_data,
+                                      const size_t &max_x, const size_t &max_y,
+                                      const int &neighborhood_size,
+                                      const intensity_t &threshold) -> bool;
+  auto max_in_neighborhood(size_t max_x, size_t max_y, uint current_x,
+                           uint current_y, int neighborhood_size,
+                           const spdata_t &sp_data) -> intensity_t;
+
   void maxfilter_x(spdata_t &maxfiltered_spectrogram,
                    const spdata_t &spectrogram, size_t sp_x, size_t sp_y,
                    int neigh);
   void maxfilter_y(spdata_t &maxfiltered_spectrogram, size_t sp_x, size_t sp_y,
                    int neigh);
   /// ========================= HASHING =====================
-  std::vector<std::pair<uint32_t, size_t>> generate_hashes_naive(
+  auto generate_hashes_naive(
       std::vector<typename Spectrogram<T>::DataPoint> &pivots,
       std::vector<typename Spectrogram<T>::DataPoint> &localmaxima,
-      size_t boxHeight, size_t boxWidth, size_t boxDisplacement);
+      size_t box_height, size_t box_width, size_t box_displacement)
+      -> std::vector<std::pair<uint32_t, size_t>>;
 
-  std::vector<typename Spectrogram<T>::DataPoint> select_pivots_naive(
-      const std::vector<typename Spectrogram<T>::DataPoint> &pts);
+  auto select_pivots_naive(
+      const std::vector<typename Spectrogram<T>::DataPoint> &pts)
+      -> std::vector<typename Spectrogram<T>::DataPoint>;
 
 public:
   /// @brief Constructor to generate the Spectrogram from audio data.

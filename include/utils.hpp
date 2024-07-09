@@ -10,8 +10,6 @@
 #include <utility>
 #include <vector>
 
-static bool info = false;
-
 template <typename T> using matrix_t = std::vector<std::vector<T>>;
 
 template <typename T> struct IsComplexT : public std::false_type {};
@@ -62,9 +60,6 @@ template <typename T>
 constexpr void vector_info(const std::vector<T> &vec, const std::string &name,
                            bool add_weighted_sum = false) {
 
-  if (!info) {
-    return;
-  }
   T sum = sum_vector(vec);
   if (add_weighted_sum) {
     throw std::runtime_error("Weighted sum not implemented.");
@@ -79,9 +74,6 @@ constexpr void vector_info(const std::vector<T> &vec, const std::string &name,
 template <typename T>
 constexpr void vector_info(const matrix_t<T> &vec, const std::string &name,
                            bool add_weighted_sum = false) {
-  if (!info) {
-    return;
-  }
 
   T sum = sum_vector(vec);
   if (add_weighted_sum) {
@@ -170,7 +162,7 @@ constexpr auto slice_cols(const std::vector<std::vector<T>> &matrix,
     return new_matrix;
   }
 
-  for (int64_t i = 0; i < static_cast<int64_t>(rows); ++i) {
+  for (size_t i = 0; i < rows; ++i) {
     if (end_idx <= matrix[i].size()) {
       new_matrix.at(i) =
           std::vector<T>(matrix[i].begin() + static_cast<int64_t>(begin_idx),

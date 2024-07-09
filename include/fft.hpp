@@ -4,22 +4,22 @@
 #include <complex>
 #include <vector>
 
-template <typename T> constexpr void fft(std::vector<std::complex<T>> &a) {
-  size_t n = a.size();
-  if (n <= 1) {
+template <typename T> constexpr void fft(std::vector<std::complex<T>> &input) {
+  size_t size = input.size();
+  if (size <= 1) {
     return;
   }
 
-  auto wn = std::exp(std::complex<T>(0, -2 * 
-      static_cast<T>(std::numbers::pi) / static_cast<T>(n)));
-  auto w = std::complex<T>(1, 0);
+  auto twiddle_factor = std::exp(std::complex<T>(
+      0, static_cast<T>(-2 * std::numbers::pi / static_cast<double>(size))));
+  auto curr_factor = std::complex<T>(1, 0);
 
   // Divide
-  std::vector<std::complex<T>> even(n / 2);
-  std::vector<std::complex<T>> odd(n / 2);
-  for (size_t i = 0; i < n / 2; ++i) {
-    even[i] = a[i * 2];
-    odd[i] = a[i * 2 + 1];
+  std::vector<std::complex<T>> even(size / 2);
+  std::vector<std::complex<T>> odd(size / 2);
+  for (size_t i = 0; i < size / 2; ++i) {
+    even[i] = input[i * 2];
+    odd[i] = input[i * 2 + 1];
   }
 
   // Conquer
@@ -27,15 +27,15 @@ template <typename T> constexpr void fft(std::vector<std::complex<T>> &a) {
   fft(odd);
 
   // Combine
-  for (size_t i = 0; i < n / 2; ++i) {
-    std::complex<T> t = w * odd[i];
-    a[i] = even[i] + t;
-    a[i + n / 2] = even[i] - t;
-    w = w * wn;
+  for (size_t i = 0; i < size / 2; ++i) {
+    std::complex<T> odd_tw_factor = curr_factor * odd[i];
+    input[i] = even[i] + odd_tw_factor;
+    input[i + size / 2] = even[i] - odd_tw_factor;
+    curr_factor = curr_factor * twiddle_factor;
   }
 }
 
-constexpr auto calculateRowSize(size_t cols) -> size_t {
+constexpr auto calculate_row_size(size_t cols) -> size_t {
   return (cols % 2 == 0) ? (cols / 2) + 1 : (cols + 1) / 2;
 }
 
@@ -63,7 +63,7 @@ constexpr auto matrix_dft(const matrix_t<T> &matrix)
   // Perform 1D DFT on each row
   for (size_t k = 0; k < rows; ++k) {
     result.at(k) = fft_real_inputs(matrix[k]);
-    result.at(k).resize(calculateRowSize(matrix[k].size()));
+    result.at(k).resize(calculate_row_size(matrix[k].size()));
   }
 
   return result;

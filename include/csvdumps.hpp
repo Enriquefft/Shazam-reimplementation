@@ -9,73 +9,77 @@
 #include <vector>
 
 template <std::floating_point T>
-void csvWriteSpectrogram(const Spectrogram<T> &spec, std::string to_write) {
-  auto sp = spec.get_spectrogram();
+void csv_write_spectrogram(const Spectrogram<T> &spectrogram,
+                           const std::string &file_to_write) {
+  auto spec = spectrogram.get_spectrogram();
   // assume spectrogram is well defined, hence it has a 0th element
-  size_t sx, sy;
-  sx = sp.size();
-  sy = sp.at(0).size();
-  std::ofstream f;
-  f.open(to_write, std::fstream::out | std::fstream::trunc);
+  size_t rows = spec.size();
+  size_t cols = spec.at(0).size();
+
+  std::ofstream output_file;
+  output_file.open(file_to_write, std::fstream::out | std::fstream::trunc);
 
   // dump the spectrogram data to a csv
-  f << sx << ',' << sy << '\n';
-  for (size_t i = 0; i < sx; i++) {
-    f << sp[i][0];
-    for (size_t j = 1; j < sy; j++) {
-      f << ',' << sp[i][j];
+  output_file << rows << ',' << cols << '\n';
+  for (size_t i = 0; i < rows; i++) {
+    output_file << spec[i][0];
+    for (size_t j = 1; j < cols; j++) {
+      output_file << ',' << spec[i][j];
     }
-    f << '\n';
+    output_file << '\n';
   }
 
-  f.close();
+  output_file.close();
 }
 
 template <std::floating_point T>
-void csvWriteSpectrogram(const std::vector<std::vector<T>> &sp,
-                         std::string to_write) {
+void csv_write_spectrogram(const std::vector<std::vector<T>> &spectrogram,
+                           const std::string &file_to_write) {
   // assume spectrogram is well defined, hence it has a 0th element
-  size_t sx, sy;
-  sx = sp.size();
-  sy = sp.at(0).size();
-  std::ofstream f;
-  f.open(to_write, std::fstream::out | std::fstream::trunc);
+  size_t rows = spectrogram.size();
+  size_t cols = spectrogram.at(0).size();
+
+  std::ofstream output_file;
+  output_file.open(file_to_write, std::fstream::out | std::fstream::trunc);
 
   // dump the spectrogram data to a csv
-  f << sx << ',' << sy << '\n';
-  for (size_t i = 0; i < sx; i++) {
-    f << sp[i][0];
-    for (size_t j = 1; j < sy; j++)
-      f << ',' << sp[i][j];
-    f << '\n';
+  output_file << rows << ',' << cols << '\n';
+  for (size_t i = 0; i < rows; i++) {
+    output_file << spectrogram[i][0];
+    for (size_t j = 1; j < cols; j++) {
+      output_file << ',' << spectrogram[i][j];
+    }
+    output_file << '\n';
   }
 
-  f.close();
+  output_file.close();
 }
 
 template <typename T>
-void csvWriteLocalMaxima(const std::vector<T> &pts, std::string to_write) {
+void csv_write_local_maxima(const std::vector<T> &points,
+                            const std::string &file_to_write) {
 
-  std::ofstream f;
-  f.open(to_write, std::fstream::out | std::fstream::trunc);
+  std::ofstream output_file;
+  output_file.open(file_to_write, std::fstream::out | std::fstream::trunc);
 
-  for (const T &i : pts) {
-    f << i.time << ',' << i.hertz << ',' << i.intensity << '\n';
+  for (const T &point : points) {
+    output_file << point.time << ',' << point.hertz << ',' << point.intensity
+                << '\n';
   }
 
-  f.close();
+  output_file.close();
 }
 
-void csvWriteHashes(std::vector<std::pair<uint32_t, size_t>> &hashes,
-                    std::string to_write) {
+inline void csv_write_hashes(std::vector<std::pair<uint32_t, size_t>> &hashes,
+                             const std::string &file_to_write) {
 
-  std::ofstream f;
-  f.open(to_write, std::fstream::out | std::fstream::trunc);
+  std::ofstream output_file;
+  output_file.open(file_to_write, std::fstream::out | std::fstream::trunc);
 
-  for (const auto &i : hashes) {
-    f << i.first << ',' << i.second << '\n';
+  for (const auto &hash : hashes) {
+    output_file << hash.first << ',' << hash.second << '\n';
   }
 
-  f.close();
+  output_file.close();
 }
 #endif // INCLUDE_CSVDUMPS_HPP_

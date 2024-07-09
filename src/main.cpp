@@ -28,48 +28,49 @@ auto main() -> int {
     auto start = std::chrono::high_resolution_clock::now();
     Audio<TypeParam> audio(song);
     auto end = std::chrono::high_resolution_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                  std::chrono::high_resolution_clock::now() - start)
-                  .count();
+    auto m_seconds = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::high_resolution_clock::now() - start)
+                         .count();
 
-    cout << "Read audio in " << ms << " ms" << '\n';
+    cout << "Read audio in " << m_seconds << " ms" << '\n';
 
     cout << "Building Spectrogram..." << '\n';
 
     start = std::chrono::high_resolution_clock::now();
     Spectrogram<TypeParam> spectrogram(audio);
     end = std::chrono::high_resolution_clock::now();
-    ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-             std::chrono::high_resolution_clock::now() - start)
-             .count();
+    m_seconds = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now() - start)
+                    .count();
 
-    cout << "Built spectrogram in " << ms << " ms" << '\n';
+    cout << "Built spectrogram in " << m_seconds << " ms" << '\n';
 
     cout << "Extracting features..." << '\n';
     start = std::chrono::high_resolution_clock::now();
-    auto lm = spectrogram.get_local_maximums();
+    auto local_max = spectrogram.get_local_maximums();
     end = std::chrono::high_resolution_clock::now();
-    ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-             std::chrono::high_resolution_clock::now() - start)
-             .count();
+    m_seconds = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now() - start)
+                    .count();
 
-    cout << "Found " << lm.size() << " features in " << ms << " ms" << '\n';
+    cout << "Found " << local_max.size() << " features in " << m_seconds
+         << " ms" << '\n';
 
     cout << "Computing hashes..." << '\n';
 
     start = std::chrono::high_resolution_clock::now();
     auto hashes = spectrogram.get_hashes();
     end = std::chrono::high_resolution_clock::now();
-    ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-             std::chrono::high_resolution_clock::now() - start)
-             .count();
-    cout << "Computed " << hashes.size() << " hashes in " << ms << " ms"
+    m_seconds = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now() - start)
+                    .count();
+    cout << "Computed " << hashes.size() << " hashes in " << m_seconds << " ms"
          << '\n';
 
     cout << "Dumping hashes..." << '\n';
     auto hashpath = song.parent_path().parent_path() / "experiments" /
                     (song.stem().string() + "_hashes.csv");
-    csvWriteHashes(hashes, hashpath);
+    csv_write_hashes(hashes, hashpath);
     cout << "Hashes dumped at " << hashpath.string() << '\n';
 
     // auto complex_spectrogram = Spectrogram<TypeParam>::stft(audio);
