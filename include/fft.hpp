@@ -10,13 +10,14 @@ template <typename T> constexpr void fft(std::vector<std::complex<T>> &a) {
     return;
   }
 
-  auto wn = std::exp(std::complex<T>(0, -2 * std::numbers::pi / n));
+  auto wn = std::exp(std::complex<T>(0, -2 * 
+      static_cast<T>(std::numbers::pi) / static_cast<T>(n)));
   auto w = std::complex<T>(1, 0);
 
   // Divide
   std::vector<std::complex<T>> even(n / 2);
   std::vector<std::complex<T>> odd(n / 2);
-  for (int i = 0; i < n / 2; ++i) {
+  for (size_t i = 0; i < n / 2; ++i) {
     even[i] = a[i * 2];
     odd[i] = a[i * 2 + 1];
   }

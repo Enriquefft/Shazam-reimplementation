@@ -56,6 +56,7 @@ void hash_songs(fs::path assets, fs::path hashpath)
     auto songs_file = open_file(hashpath, "songs.csv");
 
     // Stopwatch for timing
+    spdlog::set_level(spdlog::level::debug);
     spdlog::stopwatch sw_total; // Total time stopwatch
 
     // Hash all songs in assets
@@ -68,7 +69,7 @@ void hash_songs(fs::path assets, fs::path hashpath)
                 spdlog::info("Omitting non-wav file {}", fname.string());
                 continue;
             }
-
+            spdlog::info("Hashing {}",fname.string());
             // Stopwatch for per song timing
             spdlog::stopwatch sw_song; // Per song stopwatch
 
@@ -106,7 +107,7 @@ void hash_songs(fs::path assets, fs::path hashpath)
             }
             spdlog::debug("Step 5 (Dump to files) took {} ms", sw_step5.elapsed().count());
 
-            
+
             spdlog::info("Processed {} in {} ms", fname.string(), sw_song.elapsed().count());
 
             ++songid;
@@ -123,6 +124,7 @@ void hash_songs(fs::path assets, fs::path hashpath)
 
 auto main() -> int {
 
+  hash_songs("./assets", "./experiments/hashes");
   /*
   std::vector<std::filesystem::path> songs = {
       "assets/the_bidding.wav", "assets/the_bidding_noisy_sample.wav"};
