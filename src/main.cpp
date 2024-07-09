@@ -7,7 +7,6 @@
 
 #include <SongIndexing.hpp>
 
-
 using std::cout;
 namespace fs = std::filesystem;
 using TypeParam = double;
@@ -21,7 +20,7 @@ auto main() -> int {
 
 
   for (const auto &song : songs) {
-    
+
     cout << "Reading audio..." << '\n';
     cout << "Hashing " << song.string() << '\n';
 
