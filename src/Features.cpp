@@ -52,7 +52,8 @@ template <floating_point T>
 inline auto Spectrogram<T>::peak_filter_minlist(const intensity_t &maxd,
                                                 const intensity_t &spd)
     -> bool {
-  return (maxd - spd) <= __FLT_EPSILON__ && spd != 0;
+  return (maxd - spd) <= __FLT_EPSILON__ && 
+    spd >= __FLT_EPSILON__; // not zero.
 }
 
 template <floating_point T>
@@ -144,7 +145,7 @@ void Spectrogram<T>::maxfilter_y(spdata_t &maxfiltered_spectrogram, size_t sp_x,
   size_t w_size = 2 * static_cast<size_t>(neigh) + 1UL;
 
   for (size_t y = 0; y < sp_y; ++y) {
-    size_t x_start = 0;
+    // size_t x_start = 0; commented cuz compiler says so
     size_t x_read = 0;
     size_t x_write = 0;
 
@@ -194,9 +195,9 @@ void Spectrogram<T>::maxfilter_y(spdata_t &maxfiltered_spectrogram, size_t sp_x,
 }
 
 
-constexpr auto MAX_FILTER = 150;
-constexpr auto GTN_WINDOW_SIZE = 30;
-constexpr float MAXIMA_THRESHOLD = 0.9F;
+constexpr auto MAX_FILTER = 30;
+constexpr auto GTN_WINDOW_SIZE = 5;
+constexpr float MAXIMA_THRESHOLD = 1.3F;
 
 template <floating_point T>
 auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
@@ -353,7 +354,7 @@ uint32_t assemble_hash(size_t h1, size_t h2, size_t deltaT)
   h1 = (h1 & mask) << 20;
   h2 = (h2 & mask) << 10;
   deltaT = deltaT & mask;
-  return h1 | h2 | deltaT;
+  return static_cast<uint32_t>(h1 | h2 | deltaT);
 }
 
 template <std::floating_point T> 
