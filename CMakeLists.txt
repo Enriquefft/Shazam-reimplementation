@@ -20,10 +20,13 @@ endif()
 # Targets
 
 set(PROJECT_APP ${PROJECT_NAME}_APP)
+set(PROJECT_APP_INDEXING ${PROJECT_NAME}_APP_INDEXING)
+
 add_library(${PROJECT_NAME} #[[ src/Spotify.cpp ]]
             src/AudioFile.cpp src/Spectrogram.cpp src/Features.cpp)
 
 add_executable(${PROJECT_APP} src/main.cpp)
+add_executable(${PROJECT_APP_INDEXING} src/SongIndexing.cpp)
 
 target_include_directories(${PROJECT_NAME} PUBLIC include/)
 
@@ -151,6 +154,8 @@ FetchContent_Declare(
   GIT_TAG f8d7d77c06936315286eb55f8de22cd23c188571)
 
 target_link_libraries(${PROJECT_APP} PRIVATE ${PROJECT_NAME} common cpr::cpr)
+target_link_libraries(${PROJECT_APP_INDEXING} PRIVATE ${PROJECT_NAME} common
+                                                      cpr::cpr)
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt
