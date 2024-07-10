@@ -50,25 +50,26 @@ inline auto open_file(const fs::path &hashpath, const std::string &filename)
 /// @brief Hashes all songs in the assets folder and writes them to an unordered
 /// map.
 template <std::floating_point T>
-auto hash_songs(const fs::path &assets /* , const fs::path &hashpath */) {
+auto hash_songs(const fs::path &assets , const fs::path &hashpath) {
   // Check both paths are okay
   check_directory(assets);
-  // check_directory(hashpath, true);
+  check_directory(hashpath, true);
 
   // Open 'hashes.csv' and 'songs.csv' as ofstreams in hashpath
-  // auto hashes_file = open_file(hashpath, "hashes.csv");
-  // auto songs_file = open_file(hashpath, "songs.csv");
+  auto hashes_file = open_file(hashpath, "hashes.csv");
+  auto songs_file = open_file(hashpath, "songs.csv");
 
   // Stopwatch for timing
   spdlog::set_level(spdlog::level::debug);
   spdlog::stopwatch sw_total; // Total time stopwatch
 
   // Map to store hashes for each song
-  using hashes_t = decltype(std::declval<Spectrogram<T>>().get_hashes());
-  std::unordered_map<std::string, hashes_t> songs_map;
+  ///   where its hashed using the hash, and valued by (time,songid)
+  // std::unordered_multimap<uint32_t,std::pair<size_t,size_t>> all_hashes;
+  // std::unordered_map<size_t,fs::path> songids;
 
   // Hash all songs in assets
-  for (/* size_t songid = 0; */ const auto &entry :
+  for (size_t songid = 0; const auto &entry :
        fs::directory_iterator(assets)) {
 
     if (!entry.is_regular_file()) {
@@ -109,45 +110,42 @@ auto hash_songs(const fs::path &assets /* , const fs::path &hashpath */) {
     spdlog::debug("Step 4 (Generate hashes) took {} seconds",
                   sw_step4.elapsed().count());
 
-    // Step 5: Append to songs map
-    spdlog::stopwatch sw_step5;
-    songs_map.emplace(fname.stem(), std::move(hashes));
-    spdlog::debug("Step 4 (Append hash to song_map) took {} seconds",
-                  sw_step5.elapsed().count());
+    // // Step 5: Append to songs map
+    // spdlog::stopwatch sw_step5;
 
-    spdlog::info("Processed {} in {} seconds", fname.string(),
-                 sw_song.elapsed().count());
+    // spdlog::debug("Step 4 (Append hash to song_map) took {} seconds",
+    //               sw_step5.elapsed().count());
+
+    // spdlog::info("Processed {} in {} seconds", fname.string(),
+    //              sw_song.elapsed().count());
 
     // Step 5: Dump to files
-    // spdlog::stopwatch sw_step5; // Stopwatch for step 5
-    // songs_file << songid << ',' << fname << '\n';
-    // for (const auto &i : hashes) {
-    //   uint32_t hash = i.first;
-    //   size_t time = i.second;
-    //   hashes_file << hash << ',' << time << ',' << songid << '\n';
-    // }
-    // spdlog::debug("Step 5 (Dump to files) took {} seconds",
-    //               sw_step5.elapsed().count());
-    //
-    //
-    // ++songid;
+    spdlog::stopwatch sw_step5; // Stopwatch for step 5
+    songs_file << songid << ',' << fname << '\n';
+    for (const auto &i : hashes) {
+       uint32_t hash = i.first;
+       size_t time = i.second;
+       hashes_file << hash << ',' << time << ',' << songid << '\n';
+     }
+     spdlog::debug("Step 5 (Dump to files) took {} seconds",
+                   sw_step5.elapsed().count());
+    
+    
+    ++songid;
   }
 
   // Close the files explicitly
-  // hashes_file.close();
-  // songs_file.close();
+   hashes_file.close();
+   songs_file.close();
 
   // Log total time for hashing the entire assets folder
   spdlog::info("Total time to hash all songs: {} ms",
                sw_total.elapsed().count());
-  return songs_map;
+  return;
 }
 
 auto main() -> int {
-  const std::filesystem::path ASSETS_PATH = "assets/normal_songs";
-  const std::string HASHES_FILE = "songs_map.bin";
-
-  auto songs_map = hash_songs<TypeParam>(ASSETS_PATH);
-
-  write_songs_map_to_file<TypeParam>(songs_map, HASHES_FILE);
+  const std::filesystem::path ASSETS_PATH = "assets";
+  const std::filesystem::path HASHES_PATH = "experiments/hashes";
+  hash_songs<float>(ASSETS_PATH,HASHES_PATH);
 }
