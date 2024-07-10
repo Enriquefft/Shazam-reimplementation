@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <deque>
 
 #include <iostream>
 
@@ -19,16 +20,22 @@ using TypeParam = double;
 namespace fs = std::filesystem;
 using hash_t = std::pair<uint32_t, size_t>;
 
-// constexpr auto count_matches(const std::vector<hash_t> &song_hash,
-//                              const std::vector<hash_t> &hashes) -> size_t {
-//   size_t match_count = 0;
 
-//   for (auto hash: song_hash)
+// Functions to load the csvs. They are in the format:
+/*
+hashes:
+<hash>,<pivot time>,<songid>
+...
+songs:
+<songid>,<song file name>
+...
 
-//   return match_count;
-// }
+The idea is to reduce the size of the - inmense - hashes multimap.
+It has to be a multimap because we are operating on the premise that similar song hashes
+collide, hence a normal map would not be sufficient.
 
 
+*/
 auto load_song_hashes(fs::path hahses_csv)
 {
   std::ifstream f;
@@ -86,6 +93,50 @@ auto load_song_ids(fs::path songs_csv) {
     return wavFiles;
 }
 
+// take 1 song and score it
+size_t scoreMatches(const std::vector<std::pair<size_t,size_t>>& matches, size_t binsize)
+{
+  // get the timedeltas for the matches
+  std::vector<size_t> deltas;
+  for (const auto& i: matches)
+  {
+    size_t timeSong, timeQuery;
+    timeSong = i.first;
+    timeQuery = i.second;
+    size_t delta = timeSong > timeQuery? 
+            timeSong - timeQuery:timeQuery - timeSong;
+    deltas.push_back(delta);
+  }
+  // sort in order of increasing value in order to build the hist.
+  std::sort(deltas.begin(),deltas.end());
+
+  // compute histogram peak+peakValue
+  std::deque<size_t> bin;
+  size_t maxBinSize = 0;
+
+  for (const auto& i : deltas) {
+      bin.push_front(i);
+
+      // Calculate the lower limit as a long long int
+      long long int lowerLimit = static_cast<long long int>(i) - static_cast<long long int>(binsize);
+
+      // Convert bin.back() to long long int for comparison
+      long long int signedBack = static_cast<long long int>(bin.back());
+
+      // Remove elements from the back of bin until the condition is satisfied
+      while (!bin.empty() && signedBack < lowerLimit) {
+          bin.pop_back();
+          if (!bin.empty()) {
+              signedBack = static_cast<long long int>(bin.back());
+          }
+      }
+
+      // Update maxBinSize
+      maxBinSize = std::max(maxBinSize, bin.size());
+    }
+  return maxBinSize;
+}
+
 fs::path search(const std::unordered_multimap<uint32_t,std::pair<size_t,size_t>>& hashes,
                 const std::unordered_map<size_t, fs::path>& filenames,
                 const fs::path to_search)
@@ -112,19 +163,57 @@ fs::path search(const std::unordered_multimap<uint32_t,std::pair<size_t,size_t>>
       matches[songid].push_back(std::make_pair(time,hash.second));
     }
   }
-  for (auto& i:matches)
+
+  // spdlog raw matches
+  for (const auto& i:matches)
   {
-    size_t songid = i.first;
-    size_t matchcount = i.second.size();
-    std::cout << filenames.at(songid) << ": " << matchcount << std::endl;
+    fs::path fname = filenames.at(i.first);
+    size_t score = i.second.size();
+    spdlog::debug("Song {} wih {} matches.",fname.string(),score);
   }
-  return "";
+
+
+  std::vector<std::pair<size_t,size_t>> songs_and_scores;
+  for (const auto& match:matches)
+  {
+    auto songid = match.first;
+    /// hyperparameter binsize!
+    size_t score = scoreMatches(match.second,10);
+    songs_and_scores.push_back(std::make_pair(score,songid));
+  }
+
+  std::sort(songs_and_scores.begin(),songs_and_scores.end(),
+  [](std::pair<size_t,size_t> a, std::pair<size_t,size_t> b)
+  {
+    return a.first > b.first;
+  });
+  
+  // SPDLOG SEARCH RESULT
+  for (const auto& i:songs_and_scores)
+  {
+    fs::path fname = filenames.at(i.second);
+    size_t score = i.first;
+    spdlog::debug("Song {} wih score {}.",fname.string(),score);
+  }
+  // handle the issue of no matches!
+  fs::path fname;
+  if (songs_and_scores.size() > 0) 
+    fname = filenames.at(songs_and_scores[0].second);
+  else 
+    fname = ""; // no matches
+  return fname;
 }
 
 auto main() -> int {
+  spdlog::set_level(spdlog::level::debug);
+  spdlog::stopwatch load_sw;
   auto hashes = load_song_hashes("experiments/hashes/hashes.csv");
   auto songids = load_song_ids("experiments/hashes/songs.csv");
+  spdlog::info("Done loading in {}",load_sw);
+
+  spdlog::stopwatch search_sw;
   search(hashes,songids,"assets/the_bidding_noisy_sample.wav");
+  spdlog::info("Done searching in {}",search_sw);
   
 
 /* 
