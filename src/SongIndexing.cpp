@@ -50,7 +50,7 @@ inline auto open_file(const fs::path &hashpath, const std::string &filename)
 /// @brief Hashes all songs in the assets folder and writes them to an unordered
 /// map.
 template <std::floating_point T>
-auto hash_songs(const fs::path &assets , const fs::path &hashpath) {
+auto hash_songs(const fs::path &assets, const fs::path &hashpath) {
   // Check both paths are okay
   check_directory(assets);
   check_directory(hashpath, true);
@@ -69,8 +69,7 @@ auto hash_songs(const fs::path &assets , const fs::path &hashpath) {
   // std::unordered_map<size_t,fs::path> songids;
 
   // Hash all songs in assets
-  for (size_t songid = 0; const auto &entry :
-       fs::directory_iterator(assets)) {
+  for (size_t songid = 0; const auto &entry : fs::directory_iterator(assets)) {
 
     if (!entry.is_regular_file()) {
       continue;
@@ -123,20 +122,19 @@ auto hash_songs(const fs::path &assets , const fs::path &hashpath) {
     spdlog::stopwatch sw_step5; // Stopwatch for step 5
     songs_file << songid << ',' << fname << '\n';
     for (const auto &i : hashes) {
-       uint32_t hash = i.first;
-       size_t time = i.second;
-       hashes_file << hash << ',' << time << ',' << songid << '\n';
-     }
-     spdlog::debug("Step 5 (Dump to files) took {} seconds",
-                   sw_step5.elapsed().count());
-    
-    
+      uint32_t hash = i.first;
+      size_t time = i.second;
+      hashes_file << hash << ',' << time << ',' << songid << '\n';
+    }
+    spdlog::debug("Step 5 (Dump to files) took {} seconds",
+                  sw_step5.elapsed().count());
+
     ++songid;
   }
 
   // Close the files explicitly
-   hashes_file.close();
-   songs_file.close();
+  hashes_file.close();
+  songs_file.close();
 
   // Log total time for hashing the entire assets folder
   spdlog::info("Total time to hash all songs: {} ms",
@@ -144,8 +142,20 @@ auto hash_songs(const fs::path &assets , const fs::path &hashpath) {
   return;
 }
 
-auto main() -> int {
-  const std::filesystem::path ASSETS_PATH = "assets";
-  const std::filesystem::path HASHES_PATH = "experiments/hashes";
-  hash_songs<float>(ASSETS_PATH,HASHES_PATH);
+/// Parse arguments
+inline auto parse_args(int argc, char *argv[])
+    -> std::pair<fs::path, fs::path> {
+  if (argc < 3) {
+    spdlog::error("Usage: {} SONGS_DIR HASH_OUTPUT_FILE", argv[0]);
+    throw std::runtime_error("Invalid arguments");
+  }
+  fs::path songs_dir = argv[1];
+  fs::path hash_output_path = argv[2];
+  return std::make_pair(songs_dir, hash_output_path);
+}
+
+auto main(int argc, char *argv[]) -> int {
+  auto [songs_directory, hash_output_path] = parse_args(argc, argv);
+
+  hash_songs<float>(songs_directory, hash_output_path);
 }
