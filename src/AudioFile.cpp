@@ -1,4 +1,6 @@
 #include "AudioFile.hpp"
+#include "VirtualFile.hpp"
+#include <cstring>
 #include <filesystem>
 #include <sndfile.h>
 #include <stdexcept>
@@ -7,18 +9,12 @@
 using std::vector;
 
 template <std::floating_point T>
-Audio<T>::Audio(const std::filesystem::path &path,
-                const std::optional<float> &sample_rate) {
+void Audio<T>::populate_audio_data(SF_INFO &sound_file_info,
+                                   SNDFILE *sound_file,
+                                   const std::optional<float> &sample_rate) {
 
   if (sample_rate != std::nullopt) {
     throw std::invalid_argument("only native sample_rate is supported");
-  }
-
-  SF_INFO sound_file_info;
-
-  SNDFILE *sound_file = sf_open(path.c_str(), SFM_READ, &sound_file_info);
-  if (sound_file == nullptr) {
-    throw std::invalid_argument("Could not read file: " + path.string());
   }
 
   auto channel_count = static_cast<size_t>(sound_file_info.channels);
@@ -59,6 +55,49 @@ Audio<T>::Audio(const std::filesystem::path &path,
   }
 
   sf_close(sound_file);
+}
+
+template <std::floating_point T>
+Audio<T>::Audio(std::string &audio_data,
+                const std::optional<float> &sample_rate) {
+
+  if (sample_rate != std::nullopt) {
+    throw std::invalid_argument("only native sample_rate is supported");
+  }
+
+  SF_VIRTUAL_IO sfvirtual = {VirtualFile::get_filelen, VirtualFile::seek,
+                             VirtualFile::read, VirtualFile::write,
+                             VirtualFile::tell};
+
+  SF_INFO sound_file_info;
+
+  SNDFILE *sound_file = sf_open_virtual(&sfvirtual, SFM_READ, &sound_file_info,
+                                        audio_data.data());
+
+  if (sound_file == nullptr) {
+    throw std::invalid_argument("Could not read audio_data string");
+  }
+
+  populate_audio_data(sound_file_info, sound_file, sample_rate);
+}
+
+template <std::floating_point T>
+Audio<T>::Audio(const std::filesystem::path &path,
+                const std::optional<float> &sample_rate) {
+
+  if (sample_rate != std::nullopt) {
+    throw std::invalid_argument("only native sample_rate is supported");
+  }
+
+  SF_INFO sound_file_info;
+
+  SNDFILE *sound_file = sf_open(path.c_str(), SFM_READ, &sound_file_info);
+
+  if (sound_file == nullptr) {
+    throw std::invalid_argument("Could not read file: " + path.string());
+  }
+
+  populate_audio_data(sound_file_info, sound_file, sample_rate);
 }
 
 // Explicit instantiation
