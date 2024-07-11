@@ -21,12 +21,14 @@ endif()
 
 set(PROJECT_APP ${PROJECT_NAME}_APP)
 set(PROJECT_APP_INDEXING ${PROJECT_NAME}_APP_INDEXING)
+set(PROJECT_API ${PROJECT_NAME}_API)
 
 add_library(${PROJECT_NAME} #[[ src/Spotify.cpp ]]
             src/AudioFile.cpp src/Spectrogram.cpp src/Features.cpp)
 
 add_executable(${PROJECT_APP} src/main.cpp)
 add_executable(${PROJECT_APP_INDEXING} src/SongIndexing.cpp)
+add_executable(${PROJECT_API} src/api.cpp)
 
 target_include_directories(${PROJECT_NAME} PUBLIC include/)
 
@@ -137,6 +139,15 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(json)
 target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
 
+# CROW (api)
+FetchContent_Declare(
+  Crow
+  GIT_REPOSITORY https://github.com/CrowCpp/Crow
+  GIT_TAG v1.2.0
+  SYSTEM)
+FetchContent_MakeAvailable(Crow)
+target_link_libraries(${PROJECT_API} PUBLIC Crow::Crow)
+
 # curl / cpr
 
 FetchContent_Declare(
@@ -154,6 +165,7 @@ FetchContent_Declare(
   GIT_TAG f8d7d77c06936315286eb55f8de22cd23c188571)
 
 target_link_libraries(${PROJECT_APP} PRIVATE ${PROJECT_NAME} common cpr::cpr)
+# target_link_libraries(${PROJECT_API} PRIVATE ${PROJECT_NAME} common cpr::cpr)
 target_link_libraries(${PROJECT_APP_INDEXING} PRIVATE ${PROJECT_NAME} common
                                                       cpr::cpr)
 

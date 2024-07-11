@@ -18,6 +18,8 @@
 
         packages = with pkgs; [
 
+        asio
+
             # Audio manipulation
           ffmpeg_7-headless
 
