@@ -4,34 +4,26 @@
 #include <complex>
 #include <vector>
 
-template <typename T> constexpr void fft(std::vector<std::complex<T>> &input) {
-  size_t size = input.size();
-  if (size <= 1) {
-    return;
-  }
+#include <vector>
+#include <complex>
+#include <cmath>
+#include <numbers>
 
-  auto twiddle_factor = std::exp(std::complex<T>(
-      0, static_cast<T>(-2 * std::numbers::pi / static_cast<double>(size))));
-  auto curr_factor = std::complex<T>(1, 0);
 
-  // Divide
-  std::vector<std::complex<T>> even(size / 2);
-  std::vector<std::complex<T>> odd(size / 2);
-  for (size_t i = 0; i < size / 2; ++i) {
-    even[i] = input[i * 2];
-    odd[i] = input[i * 2 + 1];
-  }
+template <typename T>
+constexpr void fft_recursive(std::vector<std::complex<T>> &input, const std::vector<std::complex<T>> &twiddle_factors, size_t start, size_t size, size_t stride) {
+  if (size <= 1) return;
 
-  // Conquer
-  fft(even);
-  fft(odd);
+  const size_t half_size = size / 2;
 
-  // Combine
-  for (size_t i = 0; i < size / 2; ++i) {
-    std::complex<T> odd_tw_factor = curr_factor * odd[i];
-    input[i] = even[i] + odd_tw_factor;
-    input[i + size / 2] = even[i] - odd_tw_factor;
-    curr_factor = curr_factor * twiddle_factor;
+  fft_recursive(input, twiddle_factors, start, half_size, stride * 2);
+  fft_recursive(input, twiddle_factors, start + stride, half_size, stride * 2);
+
+  for (size_t i = 0; i < half_size; ++i) {
+    const std::complex<T> odd_tw_factor = twiddle_factors[i * stride] * input[start + (i + half_size) * stride];
+    const std::complex<T> even_value = input[start + i * stride];
+    input[start + i * stride] = even_value + odd_tw_factor;
+    input[start + (i + half_size) * stride] = even_value - odd_tw_factor;
   }
 }
 
@@ -39,18 +31,31 @@ constexpr auto calculate_row_size(size_t cols) -> size_t {
   return (cols % 2 == 0) ? (cols / 2) + 1 : (cols + 1) / 2;
 }
 
+// In-place FFT implementation
 template <typename T>
-constexpr auto fft_real_inputs(const std::vector<T> &inputs)
-    -> std::vector<std::complex<T>> {
+constexpr void fft(std::vector<std::complex<T>> &input) {
+  const size_t size = input.size();
+  if (size <= 1) return;
 
+  // Allocate the twiddle factors outside the recursive calls to avoid recalculating
+  std::vector<std::complex<T>> twiddle_factors(size / 2);
+  for (size_t i = 0; i < size / 2; ++i) {
+    twiddle_factors[i] = std::exp(std::complex<T>(0, static_cast<T>(-2 * std::numbers::pi * i / static_cast<double>(size))));
+  }
+
+  fft_recursive(input, twiddle_factors, 0, size, 1);
+}
+
+template <typename T>
+constexpr auto fft_real_inputs(const std::vector<T> &inputs) -> std::vector<std::complex<T>> {
   std::vector<std::complex<T>> inputs_complex(inputs.size());
-
   for (size_t i = 0; i < inputs.size(); i++) {
     inputs_complex[i] = std::complex<T>(inputs[i], 0);
   }
   fft(inputs_complex);
   return inputs_complex;
 }
+
 
 template <std::floating_point T>
 constexpr auto matrix_dft(const matrix_t<T> &matrix)

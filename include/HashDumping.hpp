@@ -87,26 +87,26 @@ auto hash_songs(const fs::path &assets , const fs::path &hashpath) {
     // Step 1: Read song
     spdlog::stopwatch sw_step1; // Stopwatch for step 1
     Audio<T> song(path.string());
-    spdlog::debug("Step 1 (Read song) took {} seconds",
+    spdlog::debug("Read song took {} seconds",
                   sw_step1.elapsed().count());
 
     // Step 2: Create spectrogram
     spdlog::stopwatch sw_step2; // Stopwatch for step 2
     Spectrogram<T> spec(song);
-    spdlog::debug("Step 2 (Create spectrogram) took {} seconds",
+    spdlog::debug("Create spectrogram took {} seconds",
                   sw_step2.elapsed().count());
 
     // Step 3: Find local maxima
     spdlog::stopwatch sw_step3; // Stopwatch for step 3
     spec.get_local_maximums();
-    spdlog::debug("Step 3 (Find local maxima) took {} seconds",
-                  sw_step3.elapsed().count());
+    spdlog::debug("Find local maxima took {} seconds. Found {} local maxima.",
+                  sw_step3.elapsed().count(),spec.get_feature_count());
 
     // Step 4: Generate hashes
     spdlog::stopwatch sw_step4; // Stopwatch for step 4
     auto hashes = spec.get_hashes();
-    spdlog::debug("Step 4 (Generate hashes) took {} seconds",
-                  sw_step4.elapsed().count());
+    spdlog::debug("Generate hashes took {} seconds. Generates {} hashes",
+                  sw_step4.elapsed().count(),hashes.size());
 
     // Step 5: Dump to files
     spdlog::stopwatch sw_step5; // Stopwatch for step 5

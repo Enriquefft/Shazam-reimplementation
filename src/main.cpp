@@ -26,8 +26,9 @@ auto main(int argc, char *argv[]) -> int {
   auto res = search<TypeParam>(hashes,songids,querysong_path);
   
   std::string command;
-  command = "aplay ";
+  command = "aplay \"";
   command += (songs_dir / res).string();
+  command += "\"";
   
   system(command.c_str());
   

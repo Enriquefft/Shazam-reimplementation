@@ -16,6 +16,11 @@ template <floating_point T> auto Spectrogram<T>::get_x() -> size_t {
   return m_spectrogram.size();
 }
 
+template <floating_point T> auto Spectrogram<T>::get_feature_count() -> size_t
+{
+  return m_features.size();
+}
+
 template <floating_point T> auto Spectrogram<T>::get_y() -> size_t {
   size_t sp_x = m_spectrogram.size();
   return sp_x > 0 ? m_spectrogram[0].size() : 0;
@@ -217,9 +222,9 @@ void Spectrogram<T>::maxfilter_y(spdata_t &maxfiltered_spectrogram, size_t sp_x,
 template <floating_point T>
 auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
 
-  constexpr auto MAX_FILTER = 30;
-  constexpr auto GTN_WINDOW_SIZE = 5;
-  constexpr T MAXIMA_THRESHOLD = static_cast<T>(1.3);
+  constexpr auto MAX_FILTER = 60;
+  constexpr auto GTN_WINDOW_SIZE = 3;
+  constexpr T MAXIMA_THRESHOLD = static_cast<T>(0.5);
 
   // this is an API function that calls -some- algorithm that returns the local
   // maxima. the idea is to allow hyperparameter tuning that was not defined in
@@ -413,7 +418,7 @@ template <std::floating_point T>
 auto Spectrogram<T>::get_hashes() -> std::vector<std::pair<uint32_t, size_t>> {
 
   auto pivots = select_pivots_naive(m_features);
-  return generate_hashes_naive(pivots, m_features, 200, 500, 30);
+  return generate_hashes_naive(pivots, m_features, 200,150, 5);
 }
 
 // Explicit instantiation

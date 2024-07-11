@@ -162,6 +162,7 @@ public:
 
   auto get_x() -> size_t;
   auto get_y() -> size_t;
+  auto get_feature_count() -> size_t;
 
   auto get_hashes() -> std::vector<std::pair<uint32_t, size_t>>;
 
