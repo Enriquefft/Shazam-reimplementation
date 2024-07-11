@@ -2,6 +2,7 @@
 #define INCLUDE_HASHDUMPING_HPP_
 
 #include "HashDumping.hpp"
+#include <csvdumps.hpp>
 #include <AudioFile.hpp>
 #include <Spectrogram.hpp>
 #include <filesystem>
@@ -95,6 +96,8 @@ auto hash_songs(const fs::path &assets , const fs::path &hashpath) {
     Spectrogram<T> spec(song);
     spdlog::debug("Create spectrogram took {} seconds",
                   sw_step2.elapsed().count());
+    /// ON CHANGE OF FFT, CHECK THIS STILL DUMPS A REASONABLE SPEC!
+    // csv_write_spectrogram<T>(spec,(fs::path("experiments") / fname.stem()).string() + ".csv");
 
     // Step 3: Find local maxima
     spdlog::stopwatch sw_step3; // Stopwatch for step 3

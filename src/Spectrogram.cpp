@@ -147,7 +147,7 @@ Spectrogram<T>::Spectrogram(const std::string &csvname) {
 }
 
 template <floating_point T>
-auto Spectrogram<T>::get_spectrogram() -> matrix_t<T> {
+auto Spectrogram<T>::get_spectrogram() const -> const matrix_t<T>& {
   return m_spectrogram;
 }
 

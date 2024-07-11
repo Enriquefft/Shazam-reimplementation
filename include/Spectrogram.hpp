@@ -168,7 +168,7 @@ public:
 
   /// @brief Get the generated spectrogram.
   /// @return 2D matrix of the spectrogram.
-  auto get_spectrogram() -> std::vector<std::vector<T>>;
+  auto get_spectrogram() const -> const std::vector<std::vector<T>>&;
 
   /// @brief Extract local maximum features from the spectrogram.
   /// @return Vector of data points representing local maximums.
