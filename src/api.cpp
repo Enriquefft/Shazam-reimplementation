@@ -55,30 +55,25 @@ auto main() -> int {
         std::cout << "File operation failed: " << e.what() << '\n';
       }
 
-      std::cout << "wrote file" << '\n';
-
       // create & search the audio
       Audio<TypeParam> audio_object("temp_audio.wav");
 
-      std::cout << "created audio object" << '\n';
-
-      // hay un oveload para esto en search.hpp!
       auto best_match = search_song<TypeParam>(hashes, songids, audio_object);
-      // xd isimo xddd
-      std::cout << "best match: " << best_match << '\n';
 
-      // Return a response to the client with a success message and a status
-      // code of 200 OK
-      res.code = crow::CREATED;
-      res.write(std::string{best_match.stem()}); // Change here
-      res.end();
+      if (!best_match) {
+        res.code = crow::NOT_FOUND;
+        res.write("No significant match found");
+        res.end();
+      } else {
+        res.code = crow::OK;
+        res.write(std::string{best_match->stem()});
+        res.end();
+      }
+
     } catch (const std::exception &e) {
-      // Catch any general exceptions and print the error message
       std::cout << "Exception occurred: " << e.what() << '\n';
-      // Return a response to the client with an error message and a status
-      // code of 500 Internal Server Error
       res.code = crow::INTERNAL_SERVER_ERROR;
-      res.write("Internal server error"); // Change here
+      res.write("Internal server error");
       res.end();
     }
     return res;

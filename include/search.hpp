@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <deque>
 #include <filesystem>
+#include <functional>
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
 #include <string>
@@ -14,6 +15,9 @@
 #include <vector>
 
 namespace fs = std::filesystem;
+
+constexpr size_t BIN_SIZE = 10;
+constexpr double MAX_ALLOWED_VARIANCE = 10;
 
 // take 1 song and score it
 inline auto score_matches(const std::vector<std::pair<size_t, size_t>> &matches,
@@ -63,72 +67,64 @@ template <std::floating_point T>
 auto search_song(
     const std::unordered_multimap<uint32_t, std::pair<size_t, size_t>> &hashes,
     const std::unordered_map<size_t, fs::path> &filenames,
-    const Audio<T> &searchsong) -> fs::path {
-  spdlog::info("Searching for song...");
-  Spectrogram spec(searchsong);
+    const Audio<T> &searchsong) -> std::optional<fs::path> {
 
-  std::cout << "Generated spectrogram" << '\n';
+  Spectrogram spec(searchsong);
 
   spec.get_local_maximums();
 
-  std::cout << "Got local maximums" << '\n';
-
-  auto to_search_hashes = spec.get_hashes();
-
-  std::cout << "Got hashes" << '\n';
+  std::vector<std::pair<uint32_t, size_t>> to_search_hashes = spec.get_hashes();
+  std::unordered_map<size_t, std::vector<std::pair<size_t, size_t>>> matches;
 
   // we need 1 series per found song, like [<timesong,timesample>,...]
-  std::unordered_map<size_t, std::vector<std::pair<size_t, size_t>>> matches;
   for (const auto &hash : to_search_hashes) {
+
     // find matches for this hash
     auto range = hashes.equal_range(hash.first);
+
     // on each match, separate it by song into distinct series
     for (auto it = range.first; it != range.second; ++it) {
-      size_t time = it->second.first;
-      size_t songid = it->second.second;
-      if (!matches.contains(songid)) {
-        matches[songid] = std::vector<std::pair<size_t, size_t>>();
-      }
+      auto [time, songid] = it->second;
+
       // push back the time in song and in the hash being searched
-      matches[songid].push_back(std::make_pair(time, hash.second));
+      matches[songid].emplace_back(time, hash.second);
     }
   }
 
-  // spdlog raw matches
-  for (const auto &match : matches) {
-    const fs::path &fname = filenames.at(match.first);
-    size_t score = match.second.size();
-    spdlog::debug("Song {} with {} matches.", fname.string(), score);
-  }
+  size_t scores_sum = 0;
 
   std::vector<std::pair<size_t, size_t>> songs_and_scores;
+  songs_and_scores.reserve(matches.size());
   for (const auto &match : matches) {
     auto songid = match.first;
     /// hyperparameter binsize!
-    size_t score = score_matches(match.second, 10);
+    size_t score = score_matches(match.second, BIN_SIZE);
     songs_and_scores.emplace_back(score, songid);
+    scores_sum += score;
   }
 
-  std::sort(
-      songs_and_scores.begin(), songs_and_scores.end(),
-      [](std::pair<size_t, size_t> score_1, std::pair<size_t, size_t> score_2) {
-        return score_1.first > score_2.first;
+  size_t avg_score = scores_sum / (!matches.empty() ? matches.size() : 1);
+
+  double variance = std::transform_reduce(
+      songs_and_scores.begin(), songs_and_scores.end(), 0.0, std::plus<>(),
+      [avg_score](const std::pair<size_t, size_t> &score) {
+        return std::pow(score.first - avg_score, 2);
       });
+  variance /=
+      (!songs_and_scores.empty() ? static_cast<double>(songs_and_scores.size())
+                                 : 1);
 
-  for (const auto &song_info : songs_and_scores) {
-    const fs::path &fname = filenames.at(song_info.second);
-    size_t score = song_info.first;
-    spdlog::debug("Song {} with score {}", fname.string(), score);
+  std::ranges::sort(songs_and_scores, [](std::pair<size_t, size_t> score_1,
+                                         std::pair<size_t, size_t> score_2) {
+    return score_1.first > score_2.first;
+  });
+
+  // no matches
+  if (!songs_and_scores.empty() || variance < MAX_ALLOWED_VARIANCE) {
+    return std::nullopt;
   }
 
-  // handle the issue of no matches!
-  fs::path fname;
-  if (!songs_and_scores.empty()) {
-    fname = filenames.at(songs_and_scores[0].second);
-  } else {
-    fname = ""; // no matches
-  }
-  return fname;
+  return filenames.at(songs_and_scores[0].second);
 }
 
 #endif // INCLUDE_SEARCH_HPP_
