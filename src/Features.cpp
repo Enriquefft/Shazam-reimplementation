@@ -16,14 +16,15 @@ template <floating_point T> auto Spectrogram<T>::get_x() -> size_t {
   return m_spectrogram.size();
 }
 
-template <floating_point T> auto Spectrogram<T>::get_feature_count() -> size_t
-{
-  return m_features.size();
-}
-
 template <floating_point T> auto Spectrogram<T>::get_y() -> size_t {
   size_t sp_x = m_spectrogram.size();
   return sp_x > 0 ? m_spectrogram[0].size() : 0;
+}
+
+template <floating_point T>
+auto Spectrogram<T>::get_feature_count() -> size_t
+{
+  return m_features.size();
 }
 
 template <floating_point T>
@@ -238,11 +239,7 @@ auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
 }
 
 
-template <floating_point T>
-auto Spectrogram<T>::get_feature_count() -> size_t
-{
-  return m_features.size();
-}
+
 
 template <floating_point T>
 auto Spectrogram<T>::maxima_minlist_algorithm(int neigh) -> CritSet_t {

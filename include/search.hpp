@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <filesystem>
 #include <concepts>
+#include <spdlog/spdlog.h>
+#include <spdlog/stopwatch.h>
 
 namespace fs = std::filesystem;
 
@@ -57,11 +59,10 @@ size_t scoreMatches(const std::vector<std::pair<size_t,size_t>>& matches, size_t
 }
 
 template<std::floating_point T>
-fs::path search(const std::unordered_multimap<uint32_t,std::pair<size_t,size_t>>& hashes,
+fs::path search_song(const std::unordered_multimap<uint32_t,std::pair<size_t,size_t>>& hashes,
                 const std::unordered_map<size_t, fs::path>& filenames,
-                const fs::path to_search)
+                const Audio<T>& searchsong)
 {
-  Audio<T> searchsong(to_search);
   Spectrogram spec(searchsong);
   spec.get_local_maximums();
   auto to_search_hashes = spec.get_hashes();

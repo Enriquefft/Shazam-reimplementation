@@ -23,7 +23,8 @@ auto main(int argc, char *argv[]) -> int {
 
   auto hashes = load_song_hashes(hashes_dir / "hashes.csv");
   auto songids = load_song_ids(hashes_dir /"songs.csv");
-  auto res = search<TypeParam>(hashes,songids,querysong_path);
+  Audio<TypeParam> querysong(querysong_path);
+  auto res = search_song<TypeParam>(hashes,songids,querysong);
   
   std::string command;
   command = "aplay \"";

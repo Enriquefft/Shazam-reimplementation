@@ -47,7 +47,7 @@ auto main() -> int {
       // create & search the audio
       Audio<TypeParam> audio_object(audio_data);
       // hay un oveload para esto en search.hpp!
-      auto bestMatch = search<TypeParam>(hashes,songids,audio_object);
+      auto bestMatch = search_song<TypeParam>(hashes,songids,audio_object);
       // xd isimo xddd
       return bestMatch.string().c_str();
 

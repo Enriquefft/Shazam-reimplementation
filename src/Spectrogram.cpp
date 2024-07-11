@@ -18,6 +18,22 @@ using std::vector;
 
 constexpr auto MAX_MEM_BLOCK = binpow(2, 8) * binpow(2, 10);
 
+template <floating_point T> auto Spectrogram<T>::get_x() -> size_t {
+  // get dimensions of spectrogram
+  return m_spectrogram.size();
+}
+
+template <floating_point T> auto Spectrogram<T>::get_y() -> size_t {
+  size_t sp_x = m_spectrogram.size();
+  return sp_x > 0 ? m_spectrogram[0].size() : 0;
+}
+
+template <floating_point T>
+auto Spectrogram<T>::get_feature_count() -> size_t
+{
+  return m_features.size();
+}
+
 template <floating_point T>
 auto Spectrogram<T>::block_wise_stft(matrix_t<std::complex<T>> &stft_matrix,
                                      const matrix_t<T> &audiodata_frames,
