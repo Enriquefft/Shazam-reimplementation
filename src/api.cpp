@@ -1,6 +1,6 @@
 #include "AudioFile.hpp"
-#include "Spectrogram.hpp"
 #include "HashLoading.hpp"
+#include "Spectrogram.hpp"
 #include "search.hpp"
 #include <crow/app.h>
 #include <crow/common.h>
@@ -12,14 +12,16 @@ constexpr uint16_t PORT = 443;
 
 auto main() -> int {
 
-
   // muy xd
   auto hashes = load_song_hashes("experiments/hashes/hashes.csv");
   auto songids = load_song_ids("experiments/hashes/songs.csv");
 
+  std::cout << "Ok1" << '\n';
+
   crow::SimpleApp app;
 
-  CROW_ROUTE(app, "/").methods("POST"_method)([ &hashes, &songids ](const crow::request &req) {
+  CROW_ROUTE(app, "/").methods(
+      "POST"_method)([&hashes, &songids](const crow::request &req) {
     crow::response res;
 
     // Get the content type from the request header
@@ -44,15 +46,8 @@ auto main() -> int {
       auto audio_size = audio.size();
       const auto *audio_data = audio.c_str();
 
-      // create & search the audio
-      Audio<TypeParam> audio_object(audio_data);
-      // hay un oveload para esto en search.hpp!
-      auto bestMatch = search_song<TypeParam>(hashes,songids,audio_object);
-      // xd isimo xddd
-      return bestMatch.string().c_str();
-
       try {
-        std::ofstream out("outfiles/s1", std::ios::binary);
+        std::ofstream out("temp_audio.wav", std::ios::binary);
         out.write(audio_data, static_cast<int64_t>(audio_size));
         out.close();
       } catch (const std::ios_base::failure &e) {
@@ -60,10 +55,22 @@ auto main() -> int {
         std::cout << "File operation failed: " << e.what() << '\n';
       }
 
+      std::cout << "wrote file" << '\n';
+
+      // create & search the audio
+      Audio<TypeParam> audio_object("temp_audio.wav");
+
+      std::cout << "created audio object" << '\n';
+
+      // hay un oveload para esto en search.hpp!
+      auto best_match = search_song<TypeParam>(hashes, songids, audio_object);
+      // xd isimo xddd
+      std::cout << "best match: " << best_match << '\n';
+
       // Return a response to the client with a success message and a status
       // code of 200 OK
       res.code = crow::CREATED;
-      res.write("File uploaded successfully"); // Change here
+      res.write(std::string{best_match.stem()}); // Change here
       res.end();
     } catch (const std::exception &e) {
       // Catch any general exceptions and print the error message
@@ -74,8 +81,7 @@ auto main() -> int {
       res.write("Internal server error"); // Change here
       res.end();
     }
-
-    return "Hello world";
+    return res;
   });
 
   CROW_ROUTE(app, "/health")([]() { return "Hello world"; });
