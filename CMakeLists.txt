@@ -165,9 +165,11 @@ FetchContent_Declare(
   GIT_TAG f8d7d77c06936315286eb55f8de22cd23c188571)
 
 target_link_libraries(${PROJECT_APP} PRIVATE ${PROJECT_NAME} common cpr::cpr)
-# target_link_libraries(${PROJECT_API} PRIVATE ${PROJECT_NAME} common cpr::cpr)
+target_link_libraries(${PROJECT_API} PRIVATE ${PROJECT_NAME} common cpr::cpr)
 target_link_libraries(${PROJECT_APP_INDEXING} PRIVATE ${PROJECT_NAME} common
                                                       cpr::cpr)
+
+
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt

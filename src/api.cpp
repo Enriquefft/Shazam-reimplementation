@@ -1,14 +1,25 @@
+#include "AudioFile.hpp"
+#include "Spectrogram.hpp"
+#include "HashLoading.hpp"
+#include "search.hpp"
 #include <crow/app.h>
 #include <crow/common.h>
 #include <crow/multipart.h>
+
+using TypeParam = double;
 
 constexpr uint16_t PORT = 443;
 
 auto main() -> int {
 
+
+  // muy xd
+  auto hashes = load_song_hashes("experiments/hashes/hashes.csv");
+  auto songids = load_song_ids("experiments/hashes/songs.csv");
+
   crow::SimpleApp app;
 
-  CROW_ROUTE(app, "/").methods("POST"_method)([](const crow::request &req) {
+  CROW_ROUTE(app, "/").methods("POST"_method)([ &hashes, &songids ](const crow::request &req) {
     crow::response res;
 
     // Get the content type from the request header
@@ -32,6 +43,13 @@ auto main() -> int {
 
       auto audio_size = audio.size();
       const auto *audio_data = audio.c_str();
+
+      // create & search the audio
+      Audio<TypeParam> audio_object(audio_data);
+      // hay un oveload para esto en search.hpp!
+      auto bestMatch = search<TypeParam>(hashes,songids,audio_object);
+      // xd isimo xddd
+      return bestMatch.string().c_str();
 
       try {
         std::ofstream out("outfiles/s1", std::ios::binary);

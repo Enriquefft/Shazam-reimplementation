@@ -237,6 +237,13 @@ auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
   // return maxima_minlist_algorithm_optimized(MAX_FILTER);
 }
 
+
+template <floating_point T>
+auto Spectrogram<T>::get_feature_count() -> size_t
+{
+  return m_features.size();
+}
+
 template <floating_point T>
 auto Spectrogram<T>::maxima_minlist_algorithm(int neigh) -> CritSet_t {
   size_t sp_x = 0;
