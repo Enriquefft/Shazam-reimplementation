@@ -17,7 +17,7 @@
 namespace fs = std::filesystem;
 
 constexpr size_t BIN_SIZE = 10;
-constexpr double MAX_ALLOWED_VARIANCE = 10;
+constexpr double MIN_ALLOWED_VARIANCE = 10;
 
 // take 1 song and score it
 inline auto score_matches(const std::vector<std::pair<size_t, size_t>> &matches,
@@ -33,7 +33,7 @@ inline auto score_matches(const std::vector<std::pair<size_t, size_t>> &matches,
     deltas.push_back(delta);
   }
   // sort in order of increasing value in order to build the hist.
-  std::sort(deltas.begin(), deltas.end());
+  std::ranges::sort(deltas);
 
   // compute histogram peak+peakValue
   std::deque<size_t> bin;
@@ -74,9 +74,9 @@ auto search_song(
   spec.get_local_maximums();
 
   std::vector<std::pair<uint32_t, size_t>> to_search_hashes = spec.get_hashes();
-  std::unordered_map<size_t, std::vector<std::pair<size_t, size_t>>> matches;
 
   // we need 1 series per found song, like [<timesong,timesample>,...]
+  std::unordered_map<size_t, std::vector<std::pair<size_t, size_t>>> matches;
   for (const auto &hash : to_search_hashes) {
 
     // find matches for this hash
@@ -84,8 +84,11 @@ auto search_song(
 
     // on each match, separate it by song into distinct series
     for (auto it = range.first; it != range.second; ++it) {
-      auto [time, songid] = it->second;
-
+      size_t time = it->second.first;
+      size_t songid = it->second.second;
+      if (!matches.contains(songid)) {
+        matches[songid] = std::vector<std::pair<size_t, size_t>>();
+      }
       // push back the time in song and in the hash being searched
       matches[songid].emplace_back(time, hash.second);
     }
@@ -119,8 +122,14 @@ auto search_song(
     return score_1.first > score_2.first;
   });
 
+  std::cout << "Variance: " << variance << '\n';
+  for (const auto &[score, song_id] : songs_and_scores) {
+    std::cout << "Song: " << filenames.at(song_id) << " Score: " << score
+              << '\n';
+  }
+
   // no matches
-  if (!songs_and_scores.empty() || variance < MAX_ALLOWED_VARIANCE) {
+  if (songs_and_scores.empty() /* || variance < MAX_ALLOWED_VARIANCE */) {
     return std::nullopt;
   }
 

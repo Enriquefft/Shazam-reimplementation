@@ -16,13 +16,12 @@ auto main() -> int {
   auto hashes = load_song_hashes("experiments/hashes/hashes.csv");
   auto songids = load_song_ids("experiments/hashes/songs.csv");
 
-  std::cout << "Ok1" << '\n';
-
   crow::SimpleApp app;
 
   CROW_ROUTE(app, "/").methods(
       "POST"_method)([&hashes, &songids](const crow::request &req) {
-    crow::response res;
+    crow::response response;
+    crow::json::wvalue response_body;
 
     // Get the content type from the request header
     std::string content_type = req.get_header_value("Content-Type");
@@ -30,14 +29,12 @@ auto main() -> int {
     if (content_type.find("multipart/form-data") == std::string::npos) {
       // Return a response to the client with an error message and a status code
       // of 400 Bad Request
-      res.code = crow::BAD_REQUEST;
-      res.write("Invalid content type"); // Change here
-      res.end();
+      response.code = crow::BAD_REQUEST;
+      response_body["error"] = "Invalid content type";
     }
     try {
       // Parse the request body using the crow::multipart::message class
       crow::multipart::message msg(req);
-      std::cout << "Ok3" << '\n';
 
       auto messages = msg.part_map;
 
@@ -61,22 +58,24 @@ auto main() -> int {
       auto best_match = search_song<TypeParam>(hashes, songids, audio_object);
 
       if (!best_match) {
-        res.code = crow::NOT_FOUND;
-        res.write("No significant match found");
-        res.end();
+        response.code = crow::NOT_FOUND;
+        response_body["error"] = "No significant match found";
+        std::cout << "No significant match found" << '\n';
+
       } else {
-        res.code = crow::OK;
-        res.write(std::string{best_match->stem()});
-        res.end();
+        response.code = crow::OK;
+        response_body["song_name"] = best_match->stem().string();
+        std::cout << "Best match found: " << best_match->stem().string()
+                  << '\n';
       }
 
     } catch (const std::exception &e) {
       std::cout << "Exception occurred: " << e.what() << '\n';
-      res.code = crow::INTERNAL_SERVER_ERROR;
-      res.write("Internal server error");
-      res.end();
+      response.code = crow::INTERNAL_SERVER_ERROR;
+      response_body["error"] = "Internal server error";
     }
-    return res;
+    response.write(response_body.dump());
+    return response;
   });
 
   CROW_ROUTE(app, "/health")([]() { return "Hello world"; });

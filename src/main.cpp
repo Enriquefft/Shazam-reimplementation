@@ -26,7 +26,7 @@ auto main(int argc, char *argv[]) -> int {
 
   std::string command;
   command = "aplay \"";
-  command += (songs_dir / res).string();
+  command += (songs_dir / res.value()).string();
   command += "\"";
 
   system(command.c_str());
