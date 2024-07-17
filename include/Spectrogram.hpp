@@ -130,8 +130,8 @@ private:
                                       const size_t &max_x, const size_t &max_y,
                                       const int &neighborhood_size,
                                       const intensity_t &threshold) -> bool;
-  auto max_in_neighborhood(size_t max_x, size_t max_y, uint current_x,
-                           uint current_y, int neighborhood_size,
+  auto max_in_neighborhood(size_t max_x, size_t max_y, unsigned current_x,
+                           unsigned current_y, int neighborhood_size,
                            const spdata_t &sp_data) -> intensity_t;
 
   void maxfilter_x(spdata_t &maxfiltered_spectrogram,
@@ -168,7 +168,8 @@ public:
 
   /// @brief Get the generated spectrogram.
   /// @return 2D matrix of the spectrogram.
-  auto get_spectrogram() const -> const std::vector<std::vector<T>>&;
+  [[nodiscard]] auto get_spectrogram() const
+      -> const std::vector<std::vector<T>> &;
 
   /// @brief Extract local maximum features from the spectrogram.
   /// @return Vector of data points representing local maximums.

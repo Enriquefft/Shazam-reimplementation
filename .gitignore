@@ -215,3 +215,8 @@ experiments/hashes
 experiments/samples
 assets
 !assets/normal_songs
+
+!assets/
+
+assets/*
+!assets/normal_songs/
