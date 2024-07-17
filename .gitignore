@@ -214,3 +214,4 @@ include/fft_old.hpp
 experiments/hashes
 experiments/samples
 assets
+!assets/normal_songs
