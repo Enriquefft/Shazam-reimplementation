@@ -134,9 +134,16 @@ TYPED_TEST(ResultsTest, ValidAudio) {
 
     // validate shape
     ASSERT_EQ(data.audiodata_shape, audio.m_audiodata.size());
+
+    std::cout << "Audio data: " << audio.m_audiodata.size() << std::endl;
+    std::cout << "Data: " << data.audiodata_shape << std::endl;
+
     // validate sum
     ASSERT_NEAR(data.audiodata_sum, sum_vector(audio.m_audiodata),
                 TestFixture::COMPLEX_ERROR);
+
+    std::cout << "Audio sum: " << sum_vector(audio.m_audiodata) << std::endl;
+    std::cout << "Data sum: " << data.audiodata_sum << std::endl;
   }
 }
 
