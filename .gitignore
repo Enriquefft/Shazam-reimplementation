@@ -213,10 +213,3 @@ cython_debug/
 include/fft_old.hpp
 experiments/hashes
 experiments
-assets
-!assets/normal_songs
-
-!assets/
-
-assets/*
-!assets/normal_songs/
