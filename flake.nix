@@ -14,13 +14,13 @@
 
       devShell = pkgs: {
 
-        stdenv = pkgs.llvmPackages_17.stdenv;
+        # stdenv = pkgs.llvmPackages_17.stdenv;
 
         packages = with pkgs; [
 
-        asio
+          asio
 
-            # Audio manipulation
+          # Audio manipulation
           ffmpeg_7-headless
 
           # TODO: this is a dirty hack to make the dependencies available to pkg-config

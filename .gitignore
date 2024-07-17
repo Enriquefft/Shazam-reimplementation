@@ -4,7 +4,6 @@ CMakeCache.txt
 CMakeFiles/
 Testing/
 build/
-assets/normal_songs/
 songs_map.bin
 
 #vscode
@@ -215,3 +214,9 @@ include/fft_old.hpp
 experiments/hashes
 experiments
 assets
+!assets/normal_songs
+
+!assets/
+
+assets/*
+!assets/normal_songs/
