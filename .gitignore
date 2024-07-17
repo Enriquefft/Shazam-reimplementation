@@ -4,7 +4,6 @@ CMakeCache.txt
 CMakeFiles/
 Testing/
 build/
-assets/normal_songs/
 songs_map.bin
 
 #vscode
@@ -213,5 +212,4 @@ cython_debug/
 # random/test files in anyone's local
 include/fft_old.hpp
 experiments/hashes
-experiments/samples
-assets
+experiments

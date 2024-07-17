@@ -96,19 +96,19 @@ private:
   /// zeroes
   /// @param neigh size of sliding window
   /// @return local maxima points
-  auto maxima_minlist_algorithm(int neigh) -> std::vector<DataPoint>;
+  auto maxima_minlist_algorithm(int neighx,int neighy) -> std::vector<DataPoint>;
   /// @brief O(n) implementation of maxima_MINLIST_algorithm. May have slightly
   /// different results
   /// @param neigh size of sliding windowlocal maxima points
   /// @return local maxima points
-  auto maxima_minlist_algorithm_optimized(int neigh) -> std::vector<DataPoint>;
+  auto maxima_minlist_algorithm_optimized(int neigh, int neighy) -> std::vector<DataPoint>;
   /// @brief Find maximum points by first pulling candidates using optimized
   /// MINLIST and culling them with GTN
   /// @param maxfilter_s size of maxfilter window
   /// @param gtn_s size of GTN window
   /// @param thresh How much above average must a local maxima be.
   /// @return local maxima points
-  auto maxima_minlistgcn_algorithm(int maxfilter_s, int gtn_s,
+  auto maxima_minlistgcn_algorithm(int maxfilter_sx,int maxfilter_sy, int gtn_s,
                                    intensity_t thresh)
       -> std::vector<DataPoint>;
   /// @brief get local maxima defined as all points that are greater that those
@@ -130,8 +130,8 @@ private:
                                       const size_t &max_x, const size_t &max_y,
                                       const int &neighborhood_size,
                                       const intensity_t &threshold) -> bool;
-  auto max_in_neighborhood(size_t max_x, size_t max_y, uint current_x,
-                           uint current_y, int neighborhood_size,
+  auto max_in_neighborhood(size_t max_x, size_t max_y, unsigned current_x,
+                           unsigned current_y, int neigh_size_x, int neigh_size_y,
                            const spdata_t &sp_data) -> intensity_t;
 
   void maxfilter_x(spdata_t &maxfiltered_spectrogram,
@@ -168,7 +168,8 @@ public:
 
   /// @brief Get the generated spectrogram.
   /// @return 2D matrix of the spectrogram.
-  auto get_spectrogram() const -> const std::vector<std::vector<T>>&;
+  [[nodiscard]] auto get_spectrogram() const
+      -> const std::vector<std::vector<T>> &;
 
   /// @brief Extract local maximum features from the spectrogram.
   /// @return Vector of data points representing local maximums.

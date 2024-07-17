@@ -17,16 +17,49 @@ if(${CMAKE_VERSION} VERSION_LESS "3.25.2")
 endif()
 
 # ##############################################################################
+# Dependencies fetching
+
+include(FetchContent)
+
+# JSON
+FetchContent_Declare(
+  json
+  GIT_REPOSITORY https://github.com/nlohmann/json
+  GIT_TAG v3.11.3)
+
+# CROW (api)
+FetchContent_Declare(
+  Crow
+  GIT_REPOSITORY https://github.com/CrowCpp/Crow
+  GIT_TAG v1.2.0)
+
+# curl / cpr
+
+FetchContent_Declare(
+  cpr
+  GIT_REPOSITORY https://github.com/libcpr/cpr.git
+  GIT_TAG 3b15fa82ea74739b574d705fea44959b58142eb8)
+
+# Ctest
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG f8d7d77c06936315286eb55f8de22cd23c188571)
+FetchContent_MakeAvailable(json Crow cpr googletest)
+
+# ##############################################################################
 # Targets
 
 set(PROJECT_APP ${PROJECT_NAME}_APP)
 set(PROJECT_APP_INDEXING ${PROJECT_NAME}_APP_INDEXING)
+set(PROJECT_API ${PROJECT_NAME}_API)
 
 add_library(${PROJECT_NAME} #[[ src/Spotify.cpp ]]
             src/AudioFile.cpp src/Spectrogram.cpp src/Features.cpp)
 
 add_executable(${PROJECT_APP} src/main.cpp)
 add_executable(${PROJECT_APP_INDEXING} src/SongIndexing.cpp)
+add_executable(${PROJECT_API} src/api.cpp)
 
 target_include_directories(${PROJECT_NAME} PUBLIC include/)
 
@@ -106,8 +139,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC common)
 
 # ##############################################################################
 
-include(FetchContent)
-
 # libsndfile
 find_package(PkgConfig REQUIRED QUIET)
 pkg_check_modules(SNDFILE REQUIRED sndfile)
@@ -126,42 +157,17 @@ else() # Only use this if spdlog is not installed on your system
 endif()
 target_compile_definitions(${PROJECT_NAME} PUBLIC SPDLOG_USE_STD_FORMAT)
 
-# ##############################################################################
+target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json
+                                             Crow::Crow cpr::cpr common)
 
-# JSON
-FetchContent_Declare(
-  json
-  GIT_REPOSITORY https://github.com/nlohmann/json
-  GIT_TAG v3.11.3
-  SYSTEM)
-FetchContent_MakeAvailable(json)
-target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
-
-# curl / cpr
-
-FetchContent_Declare(
-  cpr
-  GIT_REPOSITORY https://github.com/libcpr/cpr.git
-  GIT_TAG 3b15fa82ea74739b574d705fea44959b58142eb8
-  SYSTEM)
-FetchContent_MakeAvailable(cpr)
-target_link_libraries(${PROJECT_NAME} PRIVATE cpr::cpr)
-
-# Ctest
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG f8d7d77c06936315286eb55f8de22cd23c188571)
-
-target_link_libraries(${PROJECT_APP} PRIVATE ${PROJECT_NAME} common cpr::cpr)
-target_link_libraries(${PROJECT_APP_INDEXING} PRIVATE ${PROJECT_NAME} common
-                                                      cpr::cpr)
+target_link_libraries(${PROJECT_APP} PRIVATE ${PROJECT_NAME})
+target_link_libraries(${PROJECT_API} PRIVATE ${PROJECT_NAME})
+target_link_libraries(${PROJECT_APP_INDEXING} PRIVATE ${PROJECT_NAME})
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt
     ON
     CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
 
 if(${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
   option(PACKAGE_TESTS "Build the tests" ON)
