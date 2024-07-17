@@ -87,7 +87,7 @@ inline auto Spectrogram<T>::peak_filter_minlist_gtn(
 
 template <floating_point T>
 auto Spectrogram<T>::max_in_neighborhood(size_t max_x, size_t max_y,
-                                         uint32_t current_x, uint32_t current_y,
+                                         unsigned current_x, unsigned current_y,
                                          int neighborhood_size_x,int neighborhood_size_y,
                                          const spdata_t &sp_data)
     -> intensity_t {
