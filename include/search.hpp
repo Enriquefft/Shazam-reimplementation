@@ -14,6 +14,9 @@
 #include <utility>
 #include <vector>
 
+#include <csvdumps.hpp>
+#include <tuple>
+
 namespace fs = std::filesystem;
 
 constexpr size_t BIN_SIZE = 10;
@@ -71,12 +74,21 @@ auto search_song(
 
   Spectrogram spec(searchsong);
 
-  spec.get_local_maximums();
+  csv_write_spectrogram(spec,"experiments/dumps/sample_spec.csv");
+
+  auto pts = spec.get_local_maximums();
+  
+  csv_write_local_maxima(pts,"experiments/dumps/sample_crits.csv");
 
   std::vector<std::pair<uint32_t, size_t>> to_search_hashes = spec.get_hashes();
 
+  csv_write_hashes(to_search_hashes,"experiments/dumps/sample_hashes.csv");
+
   // we need 1 series per found song, like [<timesong,timesample>,...]
   std::unordered_map<size_t, std::vector<std::pair<size_t, size_t>>> matches;
+  // for debugging purposes, record each matching hash series.
+  std::unordered_map<size_t,std::vector<std::tuple<uint32_t,size_t,size_t>>>
+    per_song_matching_hashes;
   for (const auto &hash : to_search_hashes) {
 
     // find matches for this hash
@@ -86,11 +98,15 @@ auto search_song(
     for (auto it = range.first; it != range.second; ++it) {
       size_t time = it->second.first;
       size_t songid = it->second.second;
+      // note that time is anchor in song and hash.second is anchor in sample
       if (!matches.contains(songid)) {
         matches[songid] = std::vector<std::pair<size_t, size_t>>();
+        per_song_matching_hashes[songid] = 
+            std::vector<std::tuple<uint32_t,size_t,size_t>>();
       }
       // push back the time in song and in the hash being searched
       matches[songid].emplace_back(time, hash.second);
+      per_song_matching_hashes[songid].emplace_back(hash.first,time,hash.second);
     }
   }
 

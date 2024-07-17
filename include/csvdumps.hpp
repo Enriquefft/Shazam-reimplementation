@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <tuple>
 
 template <std::floating_point T>
 void csv_write_spectrogram(const Spectrogram<T> &spectrogram,
@@ -81,5 +82,54 @@ inline void csv_write_hashes(std::vector<std::pair<uint32_t, size_t>> &hashes,
   }
 
   output_file.close();
+}
+
+
+
+template <std::floating_point T>
+inline void csv_write_matches_hashes(std::vector<std::tuple<uint32_t,size_t,size_t>> matches,
+                             const std::string &file_to_write)
+{
+  std::ofstream output_file;
+  output_file.open(file_to_write, std::fstream::out | std::fstream::trunc);
+
+  for (auto i:matches)
+    output_file << std::get<0>(i) << ',' << std::get<1>(i) 
+                          << ',' << std::get<2>(i) << '\n';
+  output_file.close();
+}
+
+
+void extract_hashes(uint32_t combined, uint16_t &hash_1, uint16_t &hash_2, uint16_t &delta_t) {
+  constexpr uint16_t MASK = 0x3FF;
+  
+  hash_1 = (combined >> 20) & MASK;
+  hash_2 = (combined >> 10) & MASK;
+  delta_t = combined & MASK;
+}
+
+
+template <std::floating_point T>
+inline void csv_write_matches_pts(std::vector<std::tuple<uint32_t,size_t,size_t>> matches,
+                             const std::string &file_to_write)
+{
+  // each tuple is hash,time in song, time in sample;
+  std::ofstream output_file;
+  output_file.open(file_to_write, std::fstream::out | std::fstream::trunc);
+  for (auto i:matches)
+  {
+      uint16_t pivot_freq;
+      uint16_t other_freq;
+      uint16_t deltat; 
+      extract_hashes(std::get<0>(i),pivot_freq,other_freq,deltat);
+
+      size_t pivotx = std::get<1>(i);
+      size_t pivoty = pivot_freq;
+      size_t otherx = std::get<1>(i) + deltat;
+      size_t othery = other_freq;
+
+      output_file << pivotx << ',' << pivoty << "\n";
+      output_file << otherx << ',' << othery << "\n";
+  } 
 }
 #endif // INCLUDE_CSVDUMPS_HPP_

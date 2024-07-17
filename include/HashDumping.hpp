@@ -97,14 +97,14 @@ auto hash_songs(const fs::path &assets , const fs::path &hashpath) {
     spdlog::debug("Create spectrogram took {} seconds",
                   sw_step2.elapsed().count());
     /// ON CHANGE OF FFT, CHECK THIS STILL DUMPS A REASONABLE SPEC!
-    // csv_write_spectrogram<T>(spec,(fs::path("experiments") / fname.stem()).string() + ".csv");
+    csv_write_spectrogram<T>(spec,(fs::path("experiments") / fname.stem()).string() + "_spec.csv");
 
     // Step 3: Find local maxima
     spdlog::stopwatch sw_step3; // Stopwatch for step 3
-    spec.get_local_maximums();
+    auto a = spec.get_local_maximums();
     spdlog::debug("Find local maxima took {} seconds. Found {} local maxima.",
                   sw_step3.elapsed().count(),spec.get_feature_count());
-
+    csv_write_local_maxima(a,(fs::path("experiments") / fname.stem()).string() + "_crits.csv");
     // Step 4: Generate hashes
     spdlog::stopwatch sw_step4; // Stopwatch for step 4
     auto hashes = spec.get_hashes();
