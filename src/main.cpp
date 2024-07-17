@@ -1,5 +1,5 @@
-#include <spdlog/spdlog.h>
-#include <spdlog/stopwatch.h>
+// #include <spdlog/spdlog.h>
+// #include <spdlog/stopwatch.h>
 
 #include <search.hpp>
 #include <HashLoading.hpp>
@@ -8,7 +8,7 @@
 using TypeParam = double;
 
 auto main(int argc, char *argv[]) -> int {
-  spdlog::set_level(spdlog::level::debug);
+  // spdlog::set_level(spdlog::level::debug);
   if (argc < 4)
   {
     std::cout << "Missing arguments: you must call this program like \n "

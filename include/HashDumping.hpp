@@ -7,8 +7,8 @@
 #include <Spectrogram.hpp>
 #include <filesystem>
 #include <fstream>
-#include <spdlog/spdlog.h>
-#include <spdlog/stopwatch.h>
+#include <iostream>
+#include <chrono>
 #include <unordered_map>
 
 namespace fs = std::filesystem;
@@ -23,18 +23,17 @@ inline void check_directory(const fs::path &path,
                             bool create_if_not_exist = false) {
   if (fs::exists(path)) {
     if (!fs::is_directory(path)) {
-      spdlog::critical("The path '{}' exists but is not a directory.",
-                       path.string());
+      std::cerr << "The path '" << path.string() << "' exists but is not a directory." << std::endl;
       throw std::runtime_error("The path exists but is not a directory.");
     }
   } else {
     if (create_if_not_exist) {
       if (!fs::create_directory(path)) {
-        spdlog::critical("Failed to create the directory '{}'.", path.string());
+        std::cerr << "Failed to create the directory '" << path.string() << "'." << std::endl;
         throw std::runtime_error("Failed to create the directory.");
       }
     } else {
-      spdlog::critical("The directory '{}' does not exist.", path.string());
+      std::cerr << "The directory '" << path.string() << "' does not exist." << std::endl;
       throw std::runtime_error("The directory does not exist.");
     }
   }
@@ -44,8 +43,7 @@ inline auto open_file(const fs::path &hashpath, const std::string &filename)
     -> std::ofstream {
   std::ofstream file(hashpath / filename);
   if (!file) {
-    spdlog::critical("Failed to open the file '{}'.",
-                     (hashpath / filename).string());
+    std::cerr << "Failed to open the file '" << (hashpath / filename).string() << "'." << std::endl;
     throw std::runtime_error("Failed to open the file: " + filename);
   }
   return file;
@@ -64,12 +62,10 @@ auto hash_songs(const fs::path &assets , const fs::path &hashpath) {
   auto songs_file = open_file(hashpath, "songs.csv");
 
   // Stopwatch for timing
-  spdlog::set_level(spdlog::level::debug);
-  spdlog::stopwatch sw_total; // Total time stopwatch
+  auto start_total = std::chrono::high_resolution_clock::now();
 
   // Hash all songs in assets
-  for (size_t songid = 0; const auto &entry :
-       fs::directory_iterator(assets)) {
+  for (size_t songid = 0; const auto &entry : fs::directory_iterator(assets)) {
 
     if (!entry.is_regular_file()) {
       continue;
@@ -78,62 +74,72 @@ auto hash_songs(const fs::path &assets , const fs::path &hashpath) {
     const auto &path = entry.path();
     const auto &fname = path.filename();
     if (path.extension() != ".wav") {
-      spdlog::info("Omitting non-wav file {}", fname.string());
+      std::cout << "Omitting non-wav file " << fname.string() << std::endl;
       continue;
     }
-    spdlog::info("Hashing {}", fname.string());
+    std::cout << "Hashing " << fname.string() << std::endl;
+
     // Stopwatch for per song timing
-    spdlog::stopwatch sw_song; // Per song stopwatch
+    auto start_song = std::chrono::high_resolution_clock::now();
 
     // Step 1: Read song
-    spdlog::stopwatch sw_step1; // Stopwatch for step 1
+    auto start_step1 = std::chrono::high_resolution_clock::now();
     Audio<T> song(path.string());
-    spdlog::debug("Read song took {} seconds",
-                  sw_step1.elapsed().count());
+    auto end_step1 = std::chrono::high_resolution_clock::now();
+    std::cout << "Read song took " 
+              << std::chrono::duration_cast<std::chrono::seconds>(end_step1 - start_step1).count() 
+              << " seconds" << std::endl;
 
     // Step 2: Create spectrogram
-    spdlog::stopwatch sw_step2; // Stopwatch for step 2
+    auto start_step2 = std::chrono::high_resolution_clock::now();
     Spectrogram<T> spec(song);
-    spdlog::debug("Create spectrogram took {} seconds",
-                  sw_step2.elapsed().count());
-    /// ON CHANGE OF FFT, CHECK THIS STILL DUMPS A REASONABLE SPEC!
-    // csv_write_spectrogram<T>(spec,(fs::path("experiments") / fname.stem()).string() + ".csv");
+    auto end_step2 = std::chrono::high_resolution_clock::now();
+    std::cout << "Create spectrogram took " 
+              << std::chrono::duration_cast<std::chrono::seconds>(end_step2 - start_step2).count() 
+              << " seconds" << std::endl;
 
     // Step 3: Find local maxima
-    spdlog::stopwatch sw_step3; // Stopwatch for step 3
+    auto start_step3 = std::chrono::high_resolution_clock::now();
     spec.get_local_maximums();
-    spdlog::debug("Find local maxima took {} seconds. Found {} local maxima.",
-                  sw_step3.elapsed().count(),spec.get_feature_count());
+    auto end_step3 = std::chrono::high_resolution_clock::now();
+    std::cout << "Find local maxima took " 
+              << std::chrono::duration_cast<std::chrono::seconds>(end_step3 - start_step3).count() 
+              << " seconds. Found " << spec.get_feature_count() << " local maxima." << std::endl;
 
     // Step 4: Generate hashes
-    spdlog::stopwatch sw_step4; // Stopwatch for step 4
+    auto start_step4 = std::chrono::high_resolution_clock::now();
     auto hashes = spec.get_hashes();
-    spdlog::debug("Generate hashes took {} seconds. Generates {} hashes",
-                  sw_step4.elapsed().count(),hashes.size());
+    auto end_step4 = std::chrono::high_resolution_clock::now();
+    std::cout << "Generate hashes took " 
+              << std::chrono::duration_cast<std::chrono::seconds>(end_step4 - start_step4).count() 
+              << " seconds. Generates " << hashes.size() << " hashes" << std::endl;
 
     // Step 5: Dump to files
-    spdlog::stopwatch sw_step5; // Stopwatch for step 5
+    auto start_step5 = std::chrono::high_resolution_clock::now();
     songs_file << songid << ',' << fname << '\n';
     for (const auto &i : hashes) {
-       uint32_t hash = i.first;
-       size_t time = i.second;
-       hashes_file << hash << ',' << time << ',' << songid << '\n';
-     }
-     spdlog::debug("Step 5 (Dump to files) took {} seconds",
-                   sw_step5.elapsed().count());
-    
-    
+      uint32_t hash = i.first;
+      size_t time = i.second;
+      hashes_file << hash << ',' << time << ',' << songid << '\n';
+    }
+    auto end_step5 = std::chrono::high_resolution_clock::now();
+    std::cout << "Step 5 (Dump to files) took " 
+              << std::chrono::duration_cast<std::chrono::seconds>(end_step5 - start_step5).count() 
+              << " seconds" << std::endl;
+
     ++songid;
   }
 
   // Close the files explicitly
-   hashes_file.close();
-   songs_file.close();
+  hashes_file.close();
+  songs_file.close();
 
   // Log total time for hashing the entire assets folder
-  spdlog::info("Total time to hash all songs: {} ms",
-               sw_total.elapsed().count());
+  auto end_total = std::chrono::high_resolution_clock::now();
+  std::cout << "Total time to hash all songs: " 
+            << std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count() 
+            << " ms" << std::endl;
   return;
 }
 
-#endif // INCLUDE_UNORDEREDMAP_HPP_
+#endif // INCLUDE_HASHDUMPING_HPP_
