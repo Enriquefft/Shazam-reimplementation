@@ -21,9 +21,7 @@ template <floating_point T> auto Spectrogram<T>::get_y() -> size_t {
   return sp_x > 0 ? m_spectrogram[0].size() : 0;
 }
 
-template <floating_point T>
-auto Spectrogram<T>::get_feature_count() -> size_t
-{
+template <floating_point T> auto Spectrogram<T>::get_feature_count() -> size_t {
   return m_features.size();
 }
 
@@ -33,20 +31,20 @@ inline auto Spectrogram<T>::is_max_in_neighborhood(
     int neighborhood_size, intensity_t threshold, const spdata_t &sp_data)
     -> bool {
   // clip the overhangs of the neighbourhood
-  uint xlo = static_cast<uint>(
+  uint32_t xlo = static_cast<uint32_t>(
       std::max(0, static_cast<int>(current_x) - neighborhood_size));
-  uint xhi = static_cast<uint>(
+  uint32_t xhi = static_cast<uint32_t>(
       std::min(max_x, static_cast<size_t>(current_x) +
                           static_cast<size_t>(neighborhood_size)));
 
-  uint ylo = static_cast<uint>(
+  uint32_t ylo = static_cast<uint32_t>(
       std::max(0, static_cast<int>(current_y) - neighborhood_size));
-  uint yhi = static_cast<uint>(
+  uint32_t yhi = static_cast<uint32_t>(
       std::min(max_y, static_cast<size_t>(current_y) +
                           static_cast<size_t>(neighborhood_size)));
 
-  for (uint i = xlo; i < xhi; i++) {
-    for (uint j = ylo; j < yhi; j++) {
+  for (uint32_t i = xlo; i < xhi; i++) {
+    for (uint32_t j = ylo; j < yhi; j++) {
       //  is not the same point
       if (current_x == i && current_y == j) {
         continue;
@@ -89,26 +87,26 @@ inline auto Spectrogram<T>::peak_filter_minlist_gtn(
 
 template <floating_point T>
 auto Spectrogram<T>::max_in_neighborhood(size_t max_x, size_t max_y,
-                                         uint current_x, uint current_y,
+                                         uint32_t current_x, uint32_t current_y,
                                          int neighborhood_size,
                                          const spdata_t &sp_data)
     -> intensity_t {
   // clip the overhangs of the neighbourhood
-  uint xlo = static_cast<uint>(
+  uint32_t xlo = static_cast<uint32_t>(
       std::max(0, static_cast<int>(current_x) - neighborhood_size));
-  uint xhi = static_cast<uint>(
+  uint32_t xhi = static_cast<uint32_t>(
       std::min(max_x, static_cast<size_t>(current_x) +
                           static_cast<size_t>(neighborhood_size)));
 
-  uint ylo = static_cast<uint>(
+  uint32_t ylo = static_cast<uint32_t>(
       std::max(0, static_cast<int>(current_y) - neighborhood_size));
-  uint yhi = static_cast<uint>(
+  uint32_t yhi = static_cast<uint32_t>(
       std::min(max_y, static_cast<size_t>(current_y) +
                           static_cast<size_t>(neighborhood_size)));
 
   intensity_t max = sp_data[xlo][ylo];
-  for (uint i = xlo; i < xhi; i++) {
-    for (uint j = ylo; j < yhi; j++) {
+  for (uint32_t i = xlo; i < xhi; i++) {
+    for (uint32_t j = ylo; j < yhi; j++) {
       if (sp_data[i][j] > max) {
         max = sp_data[i][j];
       }
@@ -238,9 +236,6 @@ auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
   // return maxima_minlist_algorithm_optimized(MAX_FILTER);
 }
 
-
-
-
 template <floating_point T>
 auto Spectrogram<T>::maxima_minlist_algorithm(int neigh) -> CritSet_t {
   size_t sp_x = 0;
@@ -310,8 +305,8 @@ auto Spectrogram<T>::maxima_minlistgcn_algorithm(int maxfilter_s, int gtn_s,
   // find mean loudness of the smaxfiltered spectrogram
   double avg_loudness_d = 0;
   size_t num_elements = sp_x * sp_y;
-  for (uint i = 0; i < sp_x; i++) {
-    for (uint j = 0; j < sp_y; j++) {
+  for (uint32_t i = 0; i < sp_x; i++) {
+    for (uint32_t j = 0; j < sp_y; j++) {
       avg_loudness_d = (static_cast<double>(num_elements) /
                         static_cast<double>(num_elements + 1)) *
                            avg_loudness_d +
@@ -358,8 +353,8 @@ auto Spectrogram<T>::maxima_gtn_algorithm(int neighbourhood, T thrsh)
     }
   }
   T avg_loudness = avg_loudness_d;
-  for (uint i = 0; i < sp_x; i++) {
-    for (uint j = 0; j < sp_y; j++) {
+  for (uint32_t i = 0; i < sp_x; i++) {
+    for (uint32_t j = 0; j < sp_y; j++) {
       // detect candidate local maxima
       if (is_max_in_neighborhood(sp_x, sp_y, i, j, neighbourhood,
                                  avg_loudness * thrsh, m_spectrogram)) {
@@ -422,7 +417,7 @@ template <std::floating_point T>
 auto Spectrogram<T>::get_hashes() -> std::vector<std::pair<uint32_t, size_t>> {
 
   auto pivots = select_pivots_naive(m_features);
-  return generate_hashes_naive(pivots, m_features, 200,150, 5);
+  return generate_hashes_naive(pivots, m_features, 200, 150, 5);
 }
 
 // Explicit instantiation
