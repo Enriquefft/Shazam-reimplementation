@@ -18,6 +18,22 @@ using std::vector;
 
 constexpr auto MAX_MEM_BLOCK = binpow(2, 8) * binpow(2, 10);
 
+template <floating_point T> auto Spectrogram<T>::get_x() -> size_t {
+  // get dimensions of spectrogram
+  return m_spectrogram.size();
+}
+
+template <floating_point T> auto Spectrogram<T>::get_y() -> size_t {
+  size_t sp_x = m_spectrogram.size();
+  return sp_x > 0 ? m_spectrogram[0].size() : 0;
+}
+
+template <floating_point T>
+auto Spectrogram<T>::get_feature_count() -> size_t
+{
+  return m_features.size();
+}
+
 template <floating_point T>
 auto Spectrogram<T>::block_wise_stft(matrix_t<std::complex<T>> &stft_matrix,
                                      const matrix_t<T> &audiodata_frames,
@@ -316,9 +332,9 @@ auto Spectrogram<T>::pad(const vector<T> &data,
   return result;
 }
 template <floating_point T>
-auto Spectrogram<T>::pad_center(const vector<T> &data,
+auto Spectrogram<T>::pad_center(const std::vector<T> &data,
                                 const size_t &target_size,
-                                const PADDING_MODE &padding_mode) -> vector<T> {
+                                const PADDING_MODE &padding_mode) -> std::vector<T> {
   if (target_size <= data.size()) {
     return data;
   }
@@ -356,8 +372,14 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
                           const PADDING_MODE &padding_mode)
     -> matrix_t<std::complex<T>> {
 
-  auto effectve_window_length = window_length.value_or(n_fft);
-  auto effective_hop_length = hop_length.value_or(effectve_window_length / 4);
+
+  auto effective_window_length = window_length.value_or(n_fft);
+  auto effective_hop_length = hop_length.value_or(effective_window_length / 4);
+  /// set the scale variables to know the units of the spectrogram
+  // hertz per pixel
+  size_t scale_y = audio.m_sample_rate/effective_window_length;
+  /// pixels per second
+  size_t scale_x = audio.m_sample_rate/effective_hop_length;
 
   auto fft_window = get_window(window, n_fft);
 
