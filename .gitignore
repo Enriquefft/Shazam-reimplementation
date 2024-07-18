@@ -4,7 +4,9 @@ CMakeCache.txt
 CMakeFiles/
 Testing/
 build/
+dataset/
 songs_map.bin
+temp_audio.wav
 
 #vscode
 .vscode/

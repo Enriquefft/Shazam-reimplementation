@@ -24,6 +24,11 @@ auto main(int argc, char *argv[]) -> int {
   Audio<TypeParam> querysong(querysong_path);
   auto res = search_song<TypeParam>(hashes, songids, querysong);
 
+  if (!res.has_value()) {
+    std::cout << "No song found" << '\n';
+    return 0;
+  }
+
   std::string command;
   command = "aplay \"";
   command += (songs_dir / res.value()).string();
