@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
         // scores vector for every song against this sample
         for (int i=0; i<songids.size();i++)
         {
-          if (scores[j].second == i)
+          if (j < scores.size() && scores[j].second == i)
           {
             dump << ',' << scores[j].first;
             j++;
