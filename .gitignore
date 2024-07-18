@@ -221,3 +221,4 @@ testing_dataset
 well_sampled.wav
 measurements/Dataset
 measurements/executables
+measurements/Runs/*/hashes/*
