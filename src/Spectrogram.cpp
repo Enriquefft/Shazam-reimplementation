@@ -101,10 +101,23 @@ auto Spectrogram<T>::padding_stft(matrix_t<std::complex<T>> &stft_matrix,
 template <floating_point T>
 Spectrogram<T>::Spectrogram(const Audio<T> &audio)
     : m_spectrogram({}), m_features({}) {
-
-  auto stft_matrix = stft(audio);
+  configuration = Config(); // use default config
+  auto stft_matrix = stft(audio,configuration.FFT_WINDOW);
   m_spectrogram = abs(stft_matrix);
 
+  for (size_t i = 0; i < m_spectrogram.size(); i++) {
+    for (size_t j = 0; j < m_spectrogram[0].size(); j++) {
+      m_spectrogram.at(i).at(j) = std::log(m_spectrogram[i][j] + 1);
+    }
+  }
+}
+
+template <floating_point T>
+Spectrogram<T>::Spectrogram(const Audio<T> &audio, Config& cfg)
+    : m_spectrogram({}), m_features({}),configuration(cfg) {
+  // std::cout << "Using config" << std::endl;
+  auto stft_matrix = stft(audio,configuration.FFT_WINDOW);
+  m_spectrogram = abs(stft_matrix);
   for (size_t i = 0; i < m_spectrogram.size(); i++) {
     for (size_t j = 0; j < m_spectrogram[0].size(); j++) {
       m_spectrogram.at(i).at(j) = std::log(m_spectrogram[i][j] + 1);
@@ -377,9 +390,9 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
   auto effective_hop_length = hop_length.value_or(effective_window_length / 4);
   /// set the scale variables to know the units of the spectrogram
   // hertz per pixel
-  size_t scale_y = audio.m_sample_rate/effective_window_length;
+  // size_t scale_y = audio.m_sample_rate/effective_window_length;
   /// pixels per second
-  size_t scale_x = audio.m_sample_rate/effective_hop_length;
+  // size_t scale_x = audio.m_sample_rate/effective_hop_length;
 
   auto fft_window = get_window(window, n_fft);
 

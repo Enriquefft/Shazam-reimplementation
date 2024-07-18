@@ -66,6 +66,61 @@ inline auto score_matches(const std::vector<std::pair<size_t, size_t>> &matches,
   return max_bin_size;
 }
 
+/// @brief score the similarity of clip to song
+/// @tparam T 
+/// @param hashes hashmap of hashes :v
+/// @param filenames hashmap, translation table from id to songname
+/// @param searchsong audio query
+/// @return std::vector<pair<score,song_id>>
+template <std::floating_point T>
+auto score_songs(
+    const std::unordered_multimap<uint32_t, std::pair<size_t, size_t>> &hashes,
+    const std::unordered_map<size_t, fs::path> &filenames,
+    const Audio<T> &searchsong) -> std::vector<std::pair<size_t, size_t>> {
+
+  Spectrogram spec(searchsong);
+
+  auto pts = spec.get_local_maximums();
+  
+
+  std::vector<std::pair<uint32_t, size_t>> to_search_hashes = spec.get_hashes();
+
+
+  // we need 1 series per found song, like [<timesong,timesample>,...]
+  std::unordered_map<size_t, std::vector<std::pair<size_t, size_t>>> matches;
+  for (const auto &hash : to_search_hashes) {
+
+    // find matches for this hash
+    auto range = hashes.equal_range(hash.first);
+
+    // on each match, separate it by song into distinct series
+    for (auto it = range.first; it != range.second; ++it) {
+      size_t time = it->second.first;
+      size_t songid = it->second.second;
+      // note that time is anchor in song and hash.second is anchor in sample
+      if (!matches.contains(songid)) {
+        matches[songid] = std::vector<std::pair<size_t, size_t>>();
+      }
+      // push back the time in song and in the hash being searched
+      matches[songid].emplace_back(time, hash.second);
+    }
+  }
+
+  std::vector<std::pair<size_t, size_t>> scores_and_songs;
+  scores_and_songs.reserve(matches.size());
+  for (const auto &match : matches) {
+    auto songid = match.first;
+    /// hyperparameter binsize!
+    size_t score = score_matches(match.second, BIN_SIZE);
+    scores_and_songs.emplace_back(score, songid);
+  }
+
+
+  return scores_and_songs;
+}
+
+
+
 template <std::floating_point T>
 auto search_song(
     const std::unordered_multimap<uint32_t, std::pair<size_t, size_t>> &hashes,
@@ -151,5 +206,6 @@ auto search_song(
 
   return filenames.at(songs_and_scores[0].second);
 }
+
 
 #endif // INCLUDE_SEARCH_HPP_

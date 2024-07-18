@@ -12,18 +12,33 @@
 
 template <std::floating_point T> class Audio;
 
-constexpr auto DEFAULT_NFFT = 2048;
-
 // Currently window type and padding mode are limited
 enum class WINDOW_FUNCT { HANN };
 enum class PADDING_MODE { CONSTANT };
+enum class PEAK_FUNCTION { MINLIST, GTN, MINLISTGTN};
+
+struct Config {
+    // to have the default value for stft and allow stft(audio) to work.
+    // so that 'userspace' aint broken
+    static constexpr auto FFT_WINDOW_DEFAULT = 4096;
+    
+    size_t FFT_WINDOW = FFT_WINDOW_DEFAULT;
+    int MINLIST_SIZEX = 60;
+    int MINLIST_SIZEY = 150;
+    int GTN_SIZE = 5;
+    double GTN_THRESHOLD = 1.2;
+    PEAK_FUNCTION PEAK_ALGORITHM = PEAK_FUNCTION::MINLISTGTN;
+    int HASH_BOXX = 150;
+    int HASH_BOXY = 200;
+    int HASH_BOX_DISPLACEMENT = 5;
+};
+
 
 /// @brief Class to generate and manipulate spectrograms from audio data.
 template <std::floating_point T> class Spectrogram {
   using intensity_t = T;
   using hertz_t = uint32_t;
   using time_t = size_t;
-
 private:
   /// @brief Structure to hold spectrogram data points.
   struct DataPoint {
@@ -34,6 +49,9 @@ private:
 
   std::vector<std::vector<T>> m_spectrogram; ///< 2D matrix for spectrogram.
   std::vector<DataPoint> m_features; ///< Extracted features from spectrogram.
+  Config configuration;
+  // hyperparameters config
+
 
   static auto
   block_wise_stft(std::vector<std::vector<std::complex<T>>> &stft_matrix,
@@ -155,6 +173,8 @@ public:
   /// @param audio The audio data to use.
   explicit Spectrogram(const Audio<T> &audio);
 
+  explicit Spectrogram(const Audio<T> &audio, Config& cfg);
+
   /// @brief Read a spectrogram from a CSV like a monochrome image. Delete this
   /// on final integration
   /// @param csvname filename of the csv to read!
@@ -187,7 +207,7 @@ public:
   /// @param window Type of window function to use.
   /// @param center If true, pads the signal to center the frame.
   /// @param padding_mode Padding strategy to use.
-  static auto stft(const Audio<T> &audio, const size_t &n_fft = DEFAULT_NFFT,
+  static auto stft(const Audio<T> &audio, const size_t &n_fft = Config::FFT_WINDOW_DEFAULT,
                    const std::optional<size_t> &hop_length = std::nullopt,
                    const std::optional<size_t> &window_length = std::nullopt,
                    const WINDOW_FUNCT &window = WINDOW_FUNCT::HANN,

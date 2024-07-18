@@ -220,19 +220,34 @@ void Spectrogram<T>::maxfilter_y(spdata_t &maxfiltered_spectrogram, size_t sp_x,
 
 template <floating_point T>
 auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
-
-  constexpr auto MAX_FILTER_X = 60;
-  constexpr auto MAX_FILTER_Y = 150;
-  constexpr auto GTN_WINDOW_SIZE = 5;
-  constexpr T MAXIMA_THRESHOLD = static_cast<T>(1.2);
-
   // this is an API function that calls -some- algorithm that returns the local
-  // maxima. the idea is to allow hyperparameter tuning that was not defined in
+  // maxima. the idea was to allow hyperparameter tuning that was not defined in
   // the API
 
-  // m_features =  maxima_gtn_algorithm(30,0.5f);
-  // m_features =  maxima_minlist_algorithm_optimized(MAX_FILTER_X,MAX_FILTER_Y);
-  m_features = maxima_minlistgcn_algorithm(MAX_FILTER_X,MAX_FILTER_Y,GTN_WINDOW_SIZE,MAXIMA_THRESHOLD);
+  if (configuration.PEAK_ALGORITHM == PEAK_FUNCTION::GTN)
+  {
+    m_features = maxima_gtn_algorithm(
+      configuration.GTN_SIZE,
+      static_cast<T>(configuration.GTN_THRESHOLD)
+    );
+  }
+  else if (configuration.PEAK_ALGORITHM == PEAK_FUNCTION::MINLIST)
+  {
+    m_features = maxima_minlist_algorithm_optimized(
+            configuration.MINLIST_SIZEX,
+            configuration.MINLIST_SIZEY
+          );
+  }
+  else if (configuration.PEAK_ALGORITHM == PEAK_FUNCTION::MINLISTGTN)
+  {
+    m_features = maxima_minlistgcn_algorithm(
+            configuration.MINLIST_SIZEX,
+            configuration.MINLIST_SIZEY,
+            configuration.GTN_SIZE,
+            static_cast<T>(configuration.GTN_THRESHOLD)
+          );
+  }
+
   return m_features;
 }
 

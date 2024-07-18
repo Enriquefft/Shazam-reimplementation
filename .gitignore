@@ -216,5 +216,6 @@ include/fft_old.hpp
 experiments/hashes*
 experiments/dumps
 experiments/samples
+experiments/statistics*
 testing_dataset
 well_sampled.wav

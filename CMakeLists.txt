@@ -53,14 +53,14 @@ FetchContent_MakeAvailable(json Crow cpr googletest)
 set(PROJECT_APP ${PROJECT_NAME}_APP)
 set(PROJECT_APP_INDEXING ${PROJECT_NAME}_APP_INDEXING)
 set(PROJECT_API ${PROJECT_NAME}_API)
+set(PROJECT_MEASURE ${PROJECT_NAME}_AUTOMATED_METRICS)
 
 add_library(${PROJECT_NAME} #[[ src/Spotify.cpp ]]
-            src/AudioFile.cpp src/Spectrogram.cpp src/Features.cpp)
+            src/AudioFile.cpp src/Spectrogram.cpp src/Features.cpp src/ParseConfig.cpp)
 
 add_executable(${PROJECT_APP} src/main.cpp)
 add_executable(${PROJECT_APP_INDEXING} src/SongIndexing.cpp)
 add_executable(${PROJECT_API} src/api.cpp)
-
 target_include_directories(${PROJECT_NAME} PUBLIC include/)
 
 # ##############################################################################
