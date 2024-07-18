@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Directory containing the WAV files
+input_dir="../Dataset/songs"
+
+# Loop through each WAV file in the directory
+for file in "$input_dir"/*.wav; do
+    # Generate a random start time within the duration of the audio
+    duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$file")
+    start_time=$(awk -v dur="$duration" 'BEGIN{srand(); print rand()*dur}')
+    
+    # Extract just the filename without extension
+    filename=$(basename "$file" .wav)
+    
+    # Construct the output filename as filename_sample.wav
+    output_file="${input_dir}/${filename}_sample.wav"
+    
+    # Extract a 15-second segment starting from the random start time
+    ffmpeg -hide_banner -loglevel error -ss "$start_time" -t 15 -i "$file" -acodec copy "$output_file"
+
+    echo "Extracted sample from $file and saved as $output_file"
+done
+
+echo "Extraction complete."

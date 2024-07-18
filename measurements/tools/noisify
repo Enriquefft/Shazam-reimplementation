@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Directory containing the original files
+input_directory="../Dataset/samples/clear_samples"
+
+# Directory to store the copies with white noise
+output_directory="../Dataset/samples/noisy_samples"
+# Ensure the output directory exists, create it if necessary
+mkdir -p "$output_directory"
+
+# Loop through each file in the input directory
+for file in "$input_directory"/*; do
+    # Check if the file is a regular file
+    if [[ -f "$file" ]]; then
+        # Generate output filename
+        output_file="$output_directory/$(basename "$file")"
+
+        # Get the duration of the input file
+        duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$file")
+
+        # Add white noise using ffmpeg, reducing the noise volume to 1/8th
+        ffmpeg -i "$file" -filter_complex "anoisesrc=r=44100:color=white:d=$duration,volume=0.125[a];[0][a]amix=inputs=2:duration=shortest" -c:a pcm_s16le "$output_file"
+
+        echo "White noise added to $(basename "$file")"
+    fi
+done
+
+echo "Process completed."
+
+
+

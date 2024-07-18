@@ -50,6 +50,16 @@ inline auto open_file(const fs::path &hashpath, const std::string &filename)
   return file;
 }
 
+inline auto open_file(const fs::path &path)
+    -> std::ofstream {
+  std::ofstream file(path);
+  if (!file) {
+    std::cerr << "Failed to open the file '" << (path).string() << "'." << std::endl;
+    throw std::runtime_error("Failed to open the file: " + path.filename().string());
+  }
+  return file;
+}
+
 /// @brief Hashes all songs in the assets folder and writes them to an unordered
 /// map.
 template <std::floating_point T>
@@ -238,7 +248,7 @@ auto hash_songs_and_dump_stats(
     statistics_file << fname << ',' << this_song_local_maxima << ',' 
         << this_song_hashes << ',' << read_time << ',' << stft_time << ',' 
         << lm_time << ',' << hash_time << ',' << dump_time << '\n';
-    std::cout << '.';
+    std::cout << '.' <<std::flush;
     ++songid;
   }
 

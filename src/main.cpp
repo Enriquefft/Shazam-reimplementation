@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "this type of query requires a dump location wich was not provided" << std::endl;
         return 1;
       }
-      dump = open_file(dump_file,"scores.csv");
+      dump = open_file(dump_file);
 
 
       // for each file in the directory
