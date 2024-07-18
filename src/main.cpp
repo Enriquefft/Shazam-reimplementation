@@ -5,6 +5,8 @@
 #include <string>
 #include <algorithm>
 #include "ParseConfig.hpp"
+#include <HashDumping.hpp>
+#include <chrono>
 
 namespace fs = std::filesystem;
 using TypeParam = double;
@@ -84,10 +86,60 @@ int main(int argc, char* argv[]) {
             "does not exist or is invalid" << std::endl;
         return 1;
       }
+
+      std::ofstream dump;
+      if (!received_dump)
+      {
+        std::cerr << "this type of query requires a dump location wich was not provided" << std::endl;
+        return 1;
+      }
+      dump = open_file(dump_file,"scores.csv");
+
+
       // for each file in the directory
       for (auto& entry:fs::directory_iterator(path_to_query))
       {
+        auto fpath = entry.path();
+        if (!fs::is_regular_file(entry) || fpath.extension() != ".wav")
+        {
+          continue; // skip file
+        }
         
+        auto start = std::chrono::high_resolution_clock::now();
+
+        Audio<TypeParam> sample(fpath);
+        auto scores = score_songs(hashes,songids,sample,config);
+        // sort by song id for canocical form
+        std::sort(scores.begin(),scores.end(),
+        [](std::pair<size_t,size_t> a,std::pair<size_t,size_t> b)
+        {
+          return a.second <= b.second;
+        });
+        
+        auto end = std::chrono::high_resolution_clock::now();
+        int elapsedms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        dump << fpath.filename() << ',' << elapsedms;
+
+        // yes yes this is hacky... It depends on the way that songids get generated
+        // basically iterate through the song ids, give 0 if it doesnt match and score
+        // otherwise
+
+        int j = 0;
+        // scores vector for every song against this sample
+        for (int i=0; i<songids.size();i++)
+        {
+          if (scores[j].second == i)
+          {
+            dump << ',' << scores[j].first;
+            j++;
+          }
+          else
+          {
+            // no matches!
+            dump << ',' << 0;
+          }
+        }
+        dump << '\n';
       }
     }
 

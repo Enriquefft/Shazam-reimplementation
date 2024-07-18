@@ -76,9 +76,10 @@ template <std::floating_point T>
 auto score_songs(
     const std::unordered_multimap<uint32_t, std::pair<size_t, size_t>> &hashes,
     const std::unordered_map<size_t, fs::path> &filenames,
-    const Audio<T> &searchsong) -> std::vector<std::pair<size_t, size_t>> {
+    const Audio<T> &searchsong,
+    Config cfg) -> std::vector<std::pair<size_t, size_t>> {
 
-  Spectrogram spec(searchsong);
+  Spectrogram spec(searchsong,cfg);
 
   auto pts = spec.get_local_maximums();
   
