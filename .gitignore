@@ -211,5 +211,8 @@ cython_debug/
 
 # random/test files in anyone's local
 include/fft_old.hpp
-experiments/hashes
-experiments
+experiments/hashes*
+experiments/dumps
+experiments/samples
+testing_dataset
+well_sampled.wav

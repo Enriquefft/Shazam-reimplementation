@@ -222,9 +222,9 @@ template <floating_point T>
 auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
 
   constexpr auto MAX_FILTER_X = 60;
-  constexpr auto MAX_FILTER_Y = 60;
-  constexpr auto GTN_WINDOW_SIZE = 3;
-  constexpr T MAXIMA_THRESHOLD = static_cast<T>(0.5);
+  constexpr auto MAX_FILTER_Y = 150;
+  constexpr auto GTN_WINDOW_SIZE = 5;
+  constexpr T MAXIMA_THRESHOLD = static_cast<T>(1.2);
 
   // this is an API function that calls -some- algorithm that returns the local
   // maxima. the idea is to allow hyperparameter tuning that was not defined in
