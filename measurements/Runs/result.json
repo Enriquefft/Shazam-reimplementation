@@ -16,6 +16,21 @@
       }
     },
     {
+      "file": "Z_baseline",
+      "description": "Base run to compare all others",
+      "hyperparameters": {
+        "fft_window": 4096,
+        "minlist_sizex": 60,
+        "minlist_sizey": 150,
+        "gtn_size": 5,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "MINLIST",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
       "file": "MINLIST_large",
       "description": "with aspect ratio for maxfilter 2:1 (in y its half as large side, in x is large side), large side 500.",
       "hyperparameters": {
@@ -46,6 +61,21 @@
       }
     },
     {
+      "file": "Z_MINLIST_GTN_medium_nfft",
+      "description": "MINLIST GTN using medium maxfilter, medium threshold and medium gtn. The idea is to reduce the hashes generated to the best ones, but allowing some noise in exchange for other hashes that may help get mathces in short audios. Uses nfft 8192",
+      "hyperparameters": {
+        "fft_window": 8192,
+        "minlist_sizex": 250,
+        "minlist_sizey": 125,
+        "gtn_size": 10,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "MINLISTGTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
       "file": "gtn_thresh_1.2",
       "description": "using gtn for peaks with neigh 30, threshold 1.2",
       "hyperparameters": {
@@ -55,6 +85,21 @@
         "gtn_size": 30,
         "gtn_threshold": 1.2,
         "peak_algorithm": "GTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
+      "file": "Z_minlist_nfft",
+      "description": "With stft window size 8192, run standard minlist",
+      "hyperparameters": {
+        "fft_window": 8192,
+        "minlist_sizex": 60,
+        "minlist_sizey": 150,
+        "gtn_size": 5,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "MINLIST",
         "hash_boxx": 150,
         "hash_boxy": 200,
         "hash_box_displacement": 5
@@ -76,6 +121,21 @@
       }
     },
     {
+      "file": "Z_MINLIST_medium",
+      "description": "with aspect ratio for maxfilter 2:1 (in y its half as large side, in x is large side), large side 300.",
+      "hyperparameters": {
+        "fft_window": 4096,
+        "minlist_sizex": 300,
+        "minlist_sizey": 150,
+        "gtn_size": 5,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "MINLIST",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
       "file": "MINLIST_GTN_medium_nfft",
       "description": "MINLIST GTN using medium maxfilter, medium threshold and medium gtn. The idea is to reduce the hashes generated to the best ones, but allowing some noise in exchange for other hashes that may help get mathces in short audios. Uses nfft 8192",
       "hyperparameters": {
@@ -84,6 +144,36 @@
         "minlist_sizey": 125,
         "gtn_size": 10,
         "gtn_threshold": 1.2,
+        "peak_algorithm": "MINLISTGTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
+      "file": "Z_MINLIST_large",
+      "description": "with aspect ratio for maxfilter 2:1 (in y its half as large side, in x is large side), large side 500.",
+      "hyperparameters": {
+        "fft_window": 4096,
+        "minlist_sizex": 500,
+        "minlist_sizey": 250,
+        "gtn_size": 5,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "MINLIST",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
+      "file": "Z_MINLIST_GTN_nfft",
+      "description": "MINLIST GTN using large maxfilter, high threshold and large gtn. The idea is to reduce the hashes generated to the best ones for information. Uses nfft 8192",
+      "hyperparameters": {
+        "fft_window": 8192,
+        "minlist_sizex": 500,
+        "minlist_sizey": 250,
+        "gtn_size": 15,
+        "gtn_threshold": 1.7,
         "peak_algorithm": "MINLISTGTN",
         "hash_boxx": 150,
         "hash_boxy": 200,
@@ -106,6 +196,51 @@
       }
     },
     {
+      "file": "Z_MINLIST_small",
+      "description": "with aspect ratio for maxfilter 2:1 (in y its half as large side, in x is large side), large side 150.",
+      "hyperparameters": {
+        "fft_window": 4096,
+        "minlist_sizex": 150,
+        "minlist_sizey": 75,
+        "gtn_size": 5,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "MINLIST",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
+      "file": "Z_gtn_thresh_1.8",
+      "description": "using gtn for peaks with neigh 30, threshold 1.8",
+      "hyperparameters": {
+        "fft_window": 4096,
+        "minlist_sizex": 60,
+        "minlist_sizey": 150,
+        "gtn_size": 30,
+        "gtn_threshold": 1.8,
+        "peak_algorithm": "GTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
+      "file": "Z_fft_gtn2",
+      "description": "changed fft window to 8192, using GTN for peaks, with neigh size 30",
+      "hyperparameters": {
+        "fft_window": 8192,
+        "minlist_sizex": 60,
+        "minlist_sizey": 150,
+        "gtn_size": 30,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "GTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
       "file": "fft_gtn3",
       "description": "changed fft window to 8192, using GTN for peaks, with neigh size 60",
       "hyperparameters": {
@@ -113,6 +248,21 @@
         "minlist_sizex": 60,
         "minlist_sizey": 150,
         "gtn_size": 60,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "GTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
+      "file": "Z_fft_gtn1",
+      "description": "changed fft window to 8192, using GTN for peaks, with neigh size 15",
+      "hyperparameters": {
+        "fft_window": 8192,
+        "minlist_sizex": 60,
+        "minlist_sizey": 150,
+        "gtn_size": 15,
         "gtn_threshold": 1.2,
         "peak_algorithm": "GTN",
         "hash_boxx": 150,
@@ -151,6 +301,21 @@
       }
     },
     {
+      "file": "Z_MINLIST_GTN_lax",
+      "description": "MINLIST GTN using small maxfilter, low threshold and small gtn size. Tries to maximize (reasonable) hash count",
+      "hyperparameters": {
+        "fft_window": 4096,
+        "minlist_sizex": 120,
+        "minlist_sizey": 60,
+        "gtn_size": 5,
+        "gtn_threshold": 0.7,
+        "peak_algorithm": "MINLISTGTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
       "file": "gtn_thresh_0.7",
       "description": "using gtn for peaks with neigh 30, threshold 0.7",
       "hyperparameters": {
@@ -166,6 +331,21 @@
       }
     },
     {
+      "file": "Z_MINLIST_GTN_lax_nfft",
+      "description": "MINLIST GTN using small maxfilter, low threshold and small gtn size. Tries to maximize (reasonable) hash count. Uses 8192 for nfft.",
+      "hyperparameters": {
+        "fft_window": 8192,
+        "minlist_sizex": 120,
+        "minlist_sizey": 60,
+        "gtn_size": 5,
+        "gtn_threshold": 0.7,
+        "peak_algorithm": "MINLISTGTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
       "file": "MINLIST_GTN_nfft",
       "description": "MINLIST GTN using large maxfilter, high threshold and large gtn. The idea is to reduce the hashes generated to the best ones for information. Uses nfft 8192",
       "hyperparameters": {
@@ -175,6 +355,21 @@
         "gtn_size": 15,
         "gtn_threshold": 1.7,
         "peak_algorithm": "MINLISTGTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
+      "file": "Z_gtn_thresh_0.7",
+      "description": "using gtn for peaks with neigh 30, threshold 0.7",
+      "hyperparameters": {
+        "fft_window": 4096,
+        "minlist_sizex": 60,
+        "minlist_sizey": 150,
+        "gtn_size": 30,
+        "gtn_threshold": 0.7,
+        "peak_algorithm": "GTN",
         "hash_boxx": 150,
         "hash_boxy": 200,
         "hash_box_displacement": 5
@@ -241,6 +436,21 @@
       }
     },
     {
+      "file": "Z_fft_gtn3",
+      "description": "changed fft window to 8192, using GTN for peaks, with neigh size 60",
+      "hyperparameters": {
+        "fft_window": 8192,
+        "minlist_sizex": 60,
+        "minlist_sizey": 150,
+        "gtn_size": 60,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "GTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
       "file": "minlist_nfft",
       "description": "With stft window size 8192, run standard minlist",
       "hyperparameters": {
@@ -250,6 +460,51 @@
         "gtn_size": 5,
         "gtn_threshold": 1.2,
         "peak_algorithm": "MINLIST",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
+      "file": "Z_gtn_thresh_1.2",
+      "description": "using gtn for peaks with neigh 30, threshold 1.2",
+      "hyperparameters": {
+        "fft_window": 4096,
+        "minlist_sizex": 60,
+        "minlist_sizey": 150,
+        "gtn_size": 30,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "GTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
+      "file": "Z_MINLIST_GTN_strict",
+      "description": "MINLIST GTN using large maxfilter, high threshold and large gtn. The idea is to reduce the hashes generated to the best ones for information.",
+      "hyperparameters": {
+        "fft_window": 4096,
+        "minlist_sizex": 500,
+        "minlist_sizey": 250,
+        "gtn_size": 15,
+        "gtn_threshold": 1.7,
+        "peak_algorithm": "MINLISTGTN",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
+      "file": "Z_MINLIST_GTN_medium",
+      "description": "MINLIST GTN using medium maxfilter, medium threshold and medium gtn. The idea is to reduce the hashes generated to the best ones, but allowing some noise in exchange for other hashes that may help get mathces in short audios.",
+      "hyperparameters": {
+        "fft_window": 4096,
+        "minlist_sizex": 250,
+        "minlist_sizey": 125,
+        "gtn_size": 10,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "MINLISTGTN",
         "hash_boxx": 150,
         "hash_boxy": 200,
         "hash_box_displacement": 5

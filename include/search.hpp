@@ -67,7 +67,7 @@ inline auto score_matches(const std::vector<std::pair<size_t, size_t>> &matches,
 }
 
 /// @brief score the similarity of clip to song
-/// @tparam T 
+/// @tparam T
 /// @param hashes hashmap of hashes :v
 /// @param filenames hashmap, translation table from id to songname
 /// @param searchsong audio query
@@ -76,16 +76,14 @@ template <std::floating_point T>
 auto score_songs(
     const std::unordered_multimap<uint32_t, std::pair<size_t, size_t>> &hashes,
     const std::unordered_map<size_t, fs::path> &filenames,
-    const Audio<T> &searchsong,
-    Config cfg) -> std::vector<std::pair<size_t, size_t>> {
+    const Audio<T> &searchsong, Config cfg)
+    -> std::vector<std::pair<size_t, size_t>> {
 
-  Spectrogram spec(searchsong,cfg);
+  Spectrogram spec(searchsong, cfg);
 
   auto pts = spec.get_local_maximums();
-  
 
   std::vector<std::pair<uint32_t, size_t>> to_search_hashes = spec.get_hashes();
-
 
   // we need 1 series per found song, like [<timesong,timesample>,...]
   std::unordered_map<size_t, std::vector<std::pair<size_t, size_t>>> matches;
@@ -116,11 +114,8 @@ auto score_songs(
     scores_and_songs.emplace_back(score, songid);
   }
 
-
   return scores_and_songs;
 }
-
-
 
 template <std::floating_point T>
 auto search_song(
@@ -130,21 +125,21 @@ auto search_song(
 
   Spectrogram spec(searchsong);
 
-  csv_write_spectrogram(spec,"experiments/dumps/sample_spec.csv");
+  csv_write_spectrogram(spec, "experiments/dumps/sample_spec.csv");
 
   auto pts = spec.get_local_maximums();
-  
-  csv_write_local_maxima(pts,"experiments/dumps/sample_crits.csv");
+
+  csv_write_local_maxima(pts, "experiments/dumps/sample_crits.csv");
 
   std::vector<std::pair<uint32_t, size_t>> to_search_hashes = spec.get_hashes();
 
-  csv_write_hashes(to_search_hashes,"experiments/dumps/sample_hashes.csv");
+  csv_write_hashes(to_search_hashes, "experiments/dumps/sample_hashes.csv");
 
   // we need 1 series per found song, like [<timesong,timesample>,...]
   std::unordered_map<size_t, std::vector<std::pair<size_t, size_t>>> matches;
   // for debugging purposes, record each matching hash series.
-  std::unordered_map<size_t,std::vector<std::tuple<uint32_t,size_t,size_t>>>
-    per_song_matching_hashes;
+  std::unordered_map<size_t, std::vector<std::tuple<uint32_t, size_t, size_t>>>
+      per_song_matching_hashes;
   for (const auto &hash : to_search_hashes) {
 
     // find matches for this hash
@@ -157,19 +152,22 @@ auto search_song(
       // note that time is anchor in song and hash.second is anchor in sample
       if (!matches.contains(songid)) {
         matches[songid] = std::vector<std::pair<size_t, size_t>>();
-        per_song_matching_hashes[songid] = 
-            std::vector<std::tuple<uint32_t,size_t,size_t>>();
+        per_song_matching_hashes[songid] =
+            std::vector<std::tuple<uint32_t, size_t, size_t>>();
       }
       // push back the time in song and in the hash being searched
       matches[songid].emplace_back(time, hash.second);
-      per_song_matching_hashes[songid].emplace_back(hash.first,time,hash.second);
+      per_song_matching_hashes[songid].emplace_back(hash.first, time,
+                                                    hash.second);
     }
   }
 
-  size_t scores_sum = 0;
-
   std::vector<std::pair<size_t, size_t>> songs_and_scores;
   songs_and_scores.reserve(matches.size());
+
+  size_t scores_sum = 0;
+
+  // Calculate scores and accumulate the sum of scores
   for (const auto &match : matches) {
     auto songid = match.first;
     /// hyperparameter binsize!
@@ -180,25 +178,34 @@ auto search_song(
 
   size_t avg_score = scores_sum / (!matches.empty() ? matches.size() : 1);
 
-  double variance = std::transform_reduce(
+  // Calculate standard deviation
+  double sum_squared_diff = std::transform_reduce(
       songs_and_scores.begin(), songs_and_scores.end(), 0.0, std::plus<>(),
       [avg_score](const std::pair<size_t, size_t> &score) {
         return std::pow(score.first - avg_score, 2);
       });
-  variance /=
-      (!songs_and_scores.empty() ? static_cast<double>(songs_and_scores.size())
-                                 : 1);
+  double stddev = std::sqrt(sum_squared_diff /
+                            (!songs_and_scores.empty()
+                                 ? static_cast<double>(songs_and_scores.size())
+                                 : 1));
 
-  std::ranges::sort(songs_and_scores, [](std::pair<size_t, size_t> score_1,
-                                         std::pair<size_t, size_t> score_2) {
-    return score_1.first > score_2.first;
-  });
+  // Create a new vector to store z-scores
+  // std::vector<std::pair<double, size_t>> z_scores;
+  // z_scores.reserve(songs_and_scores.size());
 
-  std::cout << "Variance: " << variance << '\n';
-  for (const auto &[score, song_id] : songs_and_scores) {
-    std::cout << "Song: " << filenames.at(song_id) << " Score: " << score
-              << '\n';
+  // Calculate z-scores for each song
+  for (auto &[score, song_id] : songs_and_scores) {
+    double z_score = (static_cast<double>(score) - avg_score) / stddev;
+    score = static_cast<size_t>(z_score);
+    // z_scores.emplace_back(z_score, song_id);
   }
+
+  // Sort the songs by z-score in descending order
+  std::ranges::sort(songs_and_scores,
+                    [](const std::pair<size_t, size_t> &score_1,
+                       const std::pair<size_t, size_t> &score_2) {
+                      return score_1.first > score_2.first;
+                    });
 
   // no matches
   if (songs_and_scores.empty() /* || variance < MAX_ALLOWED_VARIANCE */) {
@@ -207,6 +214,5 @@ auto search_song(
 
   return filenames.at(songs_and_scores[0].second);
 }
-
 
 #endif // INCLUDE_SEARCH_HPP_
