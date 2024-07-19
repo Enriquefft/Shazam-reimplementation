@@ -32,10 +32,13 @@ auto main(int argc, char *argv[]) -> int {
     string arg = argv[i];
     if (arg == "--config" && i + 1 < argc)
     {
+      configFileGiven = true;
       configfile = argv[++i];
+      std::cout << "Called with config: " << configfile;
     }
     else if (arg == "--dump" && i + 1 < argc)
     {
+      std::cout << "Called with dump";
       dumpWasGiven = true;
       datadump = argv[++i];
     }
@@ -43,11 +46,21 @@ auto main(int argc, char *argv[]) -> int {
   
   // read the config file
   if (configFileGiven)
-    Config configuration = parseConfig(configfile);
-
+  {
+    configuration = parseConfig(configfile);
+  }
+  std::cout << "Configuration: "
+    << "FFT window " << configuration.FFT_WINDOW << std::endl 
+    << "GTN size " << configuration.GTN_SIZE << std::endl 
+    << "GTN threshold " << configuration.GTN_THRESHOLD << std::endl 
+    << "Hash displacement " << configuration.HASH_BOX_DISPLACEMENT << std::endl
+    << "Hash x " << configuration.HASH_BOXX << std::endl
+    << "Hash y " << configuration.HASH_BOXY<< std::endl 
+    << "Maxfilter x " << configuration.MINLIST_SIZEX << std::endl 
+    << "Maxfilter y " << configuration.MINLIST_SIZEY << std::endl 
+    << "PEAK ALGO " << int(configuration.PEAK_ALGORITHM) << std::endl;
   if (dumpWasGiven)
   {
-
     std::cout << "A . will be drawn for each song hashed." << std::endl;
     hash_songs_and_dump_stats<TypeParam>(
             songs,

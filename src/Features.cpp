@@ -226,6 +226,8 @@ auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
 
   if (configuration.PEAK_ALGORITHM == PEAK_FUNCTION::GTN)
   {
+    // std::cout << "Running GTN with " << configuration.GTN_SIZE << ' ' 
+    //  << configuration.GTN_THRESHOLD << std::endl;
     m_features = maxima_gtn_algorithm(
       configuration.GTN_SIZE,
       static_cast<T>(configuration.GTN_THRESHOLD)
@@ -233,6 +235,8 @@ auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
   }
   else if (configuration.PEAK_ALGORITHM == PEAK_FUNCTION::MINLIST)
   {
+    // std::cout << "Running MINLIST with " << configuration.MINLIST_SIZEX << ' ' 
+    //  << configuration.MINLIST_SIZEY << std::endl;
     m_features = maxima_minlist_algorithm_optimized(
             configuration.MINLIST_SIZEX,
             configuration.MINLIST_SIZEY
@@ -240,6 +244,9 @@ auto Spectrogram<T>::get_local_maximums() -> std::vector<DataPoint> {
   }
   else if (configuration.PEAK_ALGORITHM == PEAK_FUNCTION::MINLISTGTN)
   {
+    // std::cout << "Running MINLISTGTN with " << configuration.MINLIST_SIZEX << ' ' 
+    //  << configuration.MINLIST_SIZEY << ' ' 
+    //  << configuration.GTN_SIZE << configuration.GTN_THRESHOLD << std::endl;
     m_features = maxima_minlistgcn_algorithm(
             configuration.MINLIST_SIZEX,
             configuration.MINLIST_SIZEY,
@@ -433,7 +440,10 @@ template <std::floating_point T>
 auto Spectrogram<T>::get_hashes() -> std::vector<std::pair<uint32_t, size_t>> {
 
   auto pivots = select_pivots_naive(m_features);
-  return generate_hashes_naive(pivots, m_features, 200, 150, 5);
+  return generate_hashes_naive(pivots, m_features, 
+    configuration.HASH_BOXX, 
+    configuration.HASH_BOXY, 
+    configuration.HASH_BOX_DISPLACEMENT);
 }
 
 // Explicit instantiation

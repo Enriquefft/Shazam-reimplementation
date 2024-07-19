@@ -115,7 +115,7 @@ Spectrogram<T>::Spectrogram(const Audio<T> &audio)
 template <floating_point T>
 Spectrogram<T>::Spectrogram(const Audio<T> &audio, Config& cfg)
     : m_spectrogram({}), m_features({}),configuration(cfg) {
-  // std::cout << "Using config" << std::endl;
+   // std::cout << "STFT with " << configuration.FFT_WINDOW << std::endl;
   auto stft_matrix = stft(audio,configuration.FFT_WINDOW);
   m_spectrogram = abs(stft_matrix);
   for (size_t i = 0; i < m_spectrogram.size(); i++) {

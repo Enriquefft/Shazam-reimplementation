@@ -2,73 +2,96 @@
 #include <Spectrogram.hpp>
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <sstream>
-#include <algorithm>
-#include <map>
+#include <unordered_map>
+#include <stdexcept>
 
-PEAK_FUNCTION parsePeakFunction(const std::string& value) {
-    if (value == "MINLIST") return PEAK_FUNCTION::MINLIST;
-    if (value == "GTN") return PEAK_FUNCTION::GTN;
-    if (value == "MINLISTGTN") return PEAK_FUNCTION::MINLISTGTN;
-    throw std::invalid_argument("Invalid value for PEAK_FUNCTION");
+PEAK_FUNCTION stringToPeakFunction(const std::string& str) {
+    if (str == "MINLIST") return PEAK_FUNCTION::MINLIST;
+    if (str == "GTN") return PEAK_FUNCTION::GTN;
+    if (str == "MINLISTGTN") return PEAK_FUNCTION::MINLISTGTN;
+    throw std::invalid_argument("Invalid PEAK_FUNCTION value");
 }
 
-/// @brief parse the configuration from a file.
-/// @param filepath path of the config.ini file
-/// @return configuration object as per the config file
-Config parseConfig(const std::string& filepath) {
+Config parseConfig(const std::string& filePath) {
     Config config;
-    std::map<std::string, std::string> configMap;
+    std::unordered_map<std::string, std::string> values;
+    std::ifstream file(filePath);
 
-    std::ifstream file(filepath);
     if (!file) {
-        std::cerr << "Unable to open config file: " << filepath << std::endl;
-        return config;
+        throw std::runtime_error("Could not open file");
     }
 
     std::string line;
     while (std::getline(file, line)) {
+        line.erase(0, line.find_first_not_of(" \t\n\r\f\v")); // Trim leading whitespace
         if (line.empty() || line[0] == ';') continue;
 
-        size_t delimiterPos = line.find('=');
-        if (delimiterPos == std::string::npos) continue;
+        size_t pos = line.find('=');
+        if (pos == std::string::npos) continue;
 
-        std::string key = line.substr(0, delimiterPos);
-        std::string value = line.substr(delimiterPos + 1);
+        std::string key = line.substr(0, pos);
+        std::string value = line.substr(pos + 1);
 
-        // Remove spaces from key and value
-        key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
-        value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
+        key.erase(key.find_last_not_of(" \t\n\r\f\v") + 1); // Trim trailing whitespace
+        value.erase(0, value.find_first_not_of(" \t\n\r\f\v")); // Trim leading whitespace
 
-        configMap[key] = value;
+        values[key] = value;
     }
 
-    if (configMap.find("FFT_WINDOW") != configMap.end()) {
-        config.FFT_WINDOW = std::stoi(configMap["FFT_WINDOW"]);
+    try {
+        if (values.find("FFT_WINDOW") != values.end()) config.FFT_WINDOW = std::stoi(values["FFT_WINDOW"]);
+    } catch (...) {
+        std::cerr << "Warning: Using default value for FFT_WINDOW." << std::endl;
     }
-    if (configMap.find("MINLIST_SIZEX") != configMap.end()) {
-        config.MINLIST_SIZEX = std::stoi(configMap["MINLIST_SIZEX"]);
+
+    try {
+        if (values.find("MINLIST_SIZEX") != values.end()) config.MINLIST_SIZEX = std::stoi(values["MINLIST_SIZEX"]);
+    } catch (...) {
+        std::cerr << "Warning: Using default value for MINLIST_SIZEX." << std::endl;
     }
-    if (configMap.find("MINLIST_SIZEY") != configMap.end()) {
-        config.MINLIST_SIZEY = std::stoi(configMap["MINLIST_SIZEY"]);
+
+    try {
+        if (values.find("MINLIST_SIZEY") != values.end()) config.MINLIST_SIZEY = std::stoi(values["MINLIST_SIZEY"]);
+    } catch (...) {
+        std::cerr << "Warning: Using default value for MINLIST_SIZEY." << std::endl;
     }
-    if (configMap.find("GTN_SIZE") != configMap.end()) {
-        config.GTN_SIZE = std::stoi(configMap["GTN_SIZE"]);
+
+    try {
+        if (values.find("GTN_SIZE") != values.end()) config.GTN_SIZE = std::stoi(values["GTN_SIZE"]);
+    } catch (...) {
+        std::cerr << "Warning: Using default value for GTN_SIZE." << std::endl;
     }
-    if (configMap.find("GTN_THRESHOLD") != configMap.end()) {
-        config.GTN_THRESHOLD = std::stod(configMap["GTN_THRESHOLD"]);
+
+    try {
+        if (values.find("GTN_THRESHOLD") != values.end()) config.GTN_THRESHOLD = std::stod(values["GTN_THRESHOLD"]);
+    } catch (...) {
+        std::cerr << "Warning: Using default value for GTN_THRESHOLD." << std::endl;
     }
-    if (configMap.find("PEAK_ALGORITHM") != configMap.end()) {
-        config.PEAK_ALGORITHM = parsePeakFunction(configMap["PEAK_ALGORITHM"]);
+
+    try {
+        if (values.find("PEAK_ALGORITHM") != values.end()) config.PEAK_ALGORITHM = stringToPeakFunction(values["PEAK_ALGORITHM"]);
+    } catch (...) {
+        std::cerr << "Warning: Using default value for PEAK_ALGORITHM." << std::endl;
     }
-    if (configMap.find("HASH_BOXX") != configMap.end()) {
-        config.HASH_BOXX = std::stoi(configMap["HASH_BOXX"]);
+
+    try {
+        if (values.find("HASH_BOXX") != values.end()) config.HASH_BOXX = std::stoi(values["HASH_BOXX"]);
+    } catch (...) {
+        std::cerr << "Warning: Using default value for HASH_BOXX." << std::endl;
     }
-    if (configMap.find("HASH_BOXY") != configMap.end()) {
-        config.HASH_BOXY = std::stoi(configMap["HASH_BOXY"]);
+
+    try {
+        if (values.find("HASH_BOXY") != values.end()) config.HASH_BOXY = std::stoi(values["HASH_BOXY"]);
+    } catch (...) {
+        std::cerr << "Warning: Using default value for HASH_BOXY." << std::endl;
     }
-    if (configMap.find("HASH_BOX_DISPLACEMENT") != configMap.end()) {
-        config.HASH_BOX_DISPLACEMENT = std::stoi(configMap["HASH_BOX_DISPLACEMENT"]);
+
+    try {
+        if (values.find("HASH_BOX_DISPLACEMENT") != values.end()) config.HASH_BOX_DISPLACEMENT = std::stoi(values["HASH_BOX_DISPLACEMENT"]);
+    } catch (...) {
+        std::cerr << "Warning: Using default value for HASH_BOX_DISPLACEMENT." << std::endl;
     }
 
     return config;

@@ -51,13 +51,25 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize Config object
-    Config config;
+    Config configuration;
     if (received_config) {
-        config = parseConfig(config_file.string());
+        std::cout << "Parsing configuration...";
+        configuration = parseConfig(config_file.string());
     }
 
     auto hashes = load_song_hashes(hashes_path / "hashes.csv");
     auto songids = load_song_ids(hashes_path / "songs.csv");
+
+    std::cout << "Configuration: "
+    << "FFT window " << configuration.FFT_WINDOW << std::endl 
+    << "GTN size " << configuration.GTN_SIZE << std::endl 
+    << "GTN threshold " << configuration.GTN_THRESHOLD << std::endl 
+    << "Hash displacement " << configuration.HASH_BOX_DISPLACEMENT << std::endl
+    << "Hash x " << configuration.HASH_BOXX << std::endl
+    << "Hash y " << configuration.HASH_BOXY<< std::endl 
+    << "Maxfilter x " << configuration.MINLIST_SIZEX << std::endl 
+    << "Maxfilter y " << configuration.MINLIST_SIZEY << std::endl 
+    << "PEAK ALGO " << int(configuration.PEAK_ALGORITHM) << std::endl;
 
     if (!is_sampleset)
     {
@@ -108,7 +120,7 @@ int main(int argc, char* argv[]) {
         auto start = std::chrono::high_resolution_clock::now();
 
         Audio<TypeParam> sample(fpath);
-        auto scores = score_songs(hashes,songids,sample,config);
+        auto scores = score_songs(hashes,songids,sample,configuration);
         // sort by song id for canocical form
         std::sort(scores.begin(),scores.end(),
         [](std::pair<size_t,size_t> a,std::pair<size_t,size_t> b)
