@@ -1,6 +1,21 @@
 {
   "runs": [
     {
+      "file": "baseline",
+      "description": "Base run to compare all others",
+      "hyperparameters": {
+        "fft_window": 4096,
+        "minlist_sizex": 60,
+        "minlist_sizey": 150,
+        "gtn_size": 5,
+        "gtn_threshold": 1.2,
+        "peak_algorithm": "MINLIST",
+        "hash_boxx": 150,
+        "hash_boxy": 200,
+        "hash_box_displacement": 5
+      }
+    },
+    {
       "file": "MINLIST_large",
       "description": "with aspect ratio for maxfilter 2:1 (in y its half as large side, in x is large side), large side 500.",
       "hyperparameters": {
@@ -190,21 +205,6 @@
         "gtn_size": 5,
         "gtn_threshold": 0.7,
         "peak_algorithm": "MINLISTGTN",
-        "hash_boxx": 150,
-        "hash_boxy": 200,
-        "hash_box_displacement": 5
-      }
-    },
-    {
-      "file": "baseline",
-      "description": "Base run to compare all others",
-      "hyperparameters": {
-        "fft_window": 4096,
-        "minlist_sizex": 60,
-        "minlist_sizey": 150,
-        "gtn_size": 5,
-        "gtn_threshold": 1.2,
-        "peak_algorithm": "MINLIST",
         "hash_boxx": 150,
         "hash_boxy": 200,
         "hash_box_displacement": 5

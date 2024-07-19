@@ -1,3 +1,3 @@
 song_count=100
 hash_count=2559040
-total_time=302533
+total_time=275161
