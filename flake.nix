@@ -11,6 +11,7 @@
     flakelight ./. {
 
       inputs.nixpkgs = nixpkgs;
+      nixpkgs.config = { allowUnfree = true; };
 
       devShell = pkgs: {
 
@@ -53,12 +54,17 @@
 
           include-what-you-use
 
+          ngrok
+
           (pkgs.python3.withPackages (python-pkgs: [
             # select Python packages here
             python-pkgs.numpy
             python-pkgs.librosa
             python-pkgs.matplotlib
             python-pkgs.scipy
+            python-pkgs.pandas
+            python-pkgs.seaborn
+            # python-pkgs.ace_tools
           ]))
 
         ];

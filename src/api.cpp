@@ -5,16 +5,25 @@
 #include <crow/app.h>
 #include <crow/common.h>
 #include <crow/multipart.h>
+#include <filesystem>
 
 using TypeParam = double;
 
 constexpr uint16_t PORT = 443;
 
-auto main() -> int {
+auto main(int argc, char *argv[]) -> int {
 
-  // muy xd
-  auto hashes = load_song_hashes("experiments/hashes/hashes.csv");
-  auto songids = load_song_ids("experiments/hashes/songs.csv");
+  if (argc < 2) {
+    std::cerr << "Usage: " << argv[0] << " <hashes_path>\n";
+    return 1;
+  }
+
+  std::filesystem::path hashes_path = argv[1];
+
+  std::cout << "Loading hashes from " << hashes_path << '\n';
+
+  auto hashes = load_song_hashes(hashes_path / "hashes.csv");
+  auto songids = load_song_ids(hashes_path / "songs.csv");
 
   crow::SimpleApp app;
 
