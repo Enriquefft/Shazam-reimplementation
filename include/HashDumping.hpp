@@ -231,7 +231,7 @@ auto hash_songs_and_dump_stats(
     int this_song_hashes = hashes.size();
     global_hashes_count+=hashes.size(); // keep count of the hashes!
     auto end_step4 = std::chrono::high_resolution_clock::now();
-    int hash_time = std::chrono::duration_cast<std::chrono::seconds>(end_step4 - start_step4).count();
+    int hash_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_step4 - start_step4).count();
 
     // Step 5: Dump to files
     auto start_step5 = std::chrono::high_resolution_clock::now();
@@ -242,7 +242,7 @@ auto hash_songs_and_dump_stats(
       hashes_file << hash << ',' << time << ',' << songid << '\n';
     }
     auto end_step5 = std::chrono::high_resolution_clock::now();
-    int dump_time = std::chrono::duration_cast<std::chrono::seconds>(end_step5 - start_step5).count();
+    int dump_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_step5 - start_step5).count();
 
     // dump statistics of this song to the csv.
     statistics_file << fname << ',' << this_song_local_maxima << ',' 

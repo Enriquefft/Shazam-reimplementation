@@ -56,4 +56,3 @@ HASH_BOXY=200
 ; how much in front is the box to generate combinatorial hashes drawn?
 HASH_BOX_DISPLACEMENT=5
 
-the index command is meant to be run in a 
