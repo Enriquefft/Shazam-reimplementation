@@ -7,6 +7,7 @@ build/
 dataset/
 songs_map.bin
 temp_audio.wav
+measurements/Dataset/
 
 #vscode
 .vscode/
@@ -220,4 +221,3 @@ experiments/statistics*
 testing_dataset
 well_sampled.wav
 measurements/executables
-

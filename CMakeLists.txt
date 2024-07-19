@@ -107,8 +107,6 @@ target_compile_options(
             # (https://github.com/llvm/llvm-project/issues/59572)
             -Wno-unused-macros
             >
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fsanitize=address,undefined> #
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fsanitize-address-use-after-scope>
             $<$<CONFIG:DEBUG>:
             $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
             -ggdb3
@@ -124,10 +122,6 @@ target_compile_options(
             -Ofast
             >
             >)
-
-target_link_options(
-  common INTERFACE
-  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fsanitize=address,undefined>)
 
 # Threads needed in gcc
 set(THREADS_HAVE_PTHREAD_FLAG ON)
