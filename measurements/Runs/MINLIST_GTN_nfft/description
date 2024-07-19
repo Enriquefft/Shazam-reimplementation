@@ -1,0 +1,1 @@
+MINLIST GTN using large maxfilter, high threshold and large gtn. The idea is to reduce the hashes generated to the best ones for information. Uses nfft 8192
