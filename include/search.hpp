@@ -176,28 +176,34 @@ auto search_song(
     scores_sum += score;
   }
 
-  size_t avg_score = scores_sum / (!matches.empty() ? matches.size() : 1);
+  double avg_score = static_cast<double>(scores_sum) /
+                     static_cast<double>(!matches.empty() ? matches.size() : 1);
+  const double MAX_ALLOWED_STDDEV = avg_score * 0.5;
 
   // Calculate standard deviation
   double sum_squared_diff = std::transform_reduce(
       songs_and_scores.begin(), songs_and_scores.end(), 0.0, std::plus<>(),
       [avg_score](const std::pair<size_t, size_t> &score) {
-        return std::pow(score.first - avg_score, 2);
+        return std::pow(static_cast<double>(score.first) - avg_score, 2);
       });
+
   double stddev = std::sqrt(sum_squared_diff /
                             (!songs_and_scores.empty()
                                  ? static_cast<double>(songs_and_scores.size())
                                  : 1));
 
+  std::cout << "avg score: " << avg_score << '\n';
+  std::cout << "stddev: " << stddev << '\n';
+
   // Create a new vector to store z-scores
-  // std::vector<std::pair<double, size_t>> z_scores;
-  // z_scores.reserve(songs_and_scores.size());
+  std::vector<std::pair<double, size_t>> z_scores;
+  z_scores.reserve(songs_and_scores.size());
 
   // Calculate z-scores for each song
   for (auto &[score, song_id] : songs_and_scores) {
-    double z_score = (static_cast<double>(score) - avg_score) / stddev;
-    score = static_cast<size_t>(z_score);
-    // z_scores.emplace_back(z_score, song_id);
+    double z_score =
+        (static_cast<double>(score) - avg_score) / (stddev ? stddev : 1.0);
+    z_scores.emplace_back(z_score, song_id);
   }
 
   // Sort the songs by z-score in descending order
@@ -206,9 +212,30 @@ auto search_song(
                        const std::pair<size_t, size_t> &score_2) {
                       return score_1.first > score_2.first;
                     });
+  std::ranges::sort(z_scores, [](const std::pair<double, size_t> &score_1,
+                                 const std::pair<double, size_t> &score_2) {
+    return score_1.first > score_2.first;
+  });
+
+  // cout top 5 matches
+  std::cout << "Top 5 matches with normal score: " << '\n';
+  for (size_t i = 0;
+       i < std::min(songs_and_scores.size(), static_cast<size_t>(5)); ++i) {
+    std::cout << "Song: " << filenames.at(songs_and_scores[i].second)
+              << " Score: " << songs_and_scores[i].first << '\n';
+  }
+
+  std::cout << "Top 5 matches with z-score: " << '\n';
+  for (size_t i = 0; i < std::min(z_scores.size(), static_cast<size_t>(5));
+       ++i) {
+    std::cout << "Song: " << filenames.at(z_scores[i].second)
+              << " Score: " << z_scores[i].first << '\n';
+  }
+
+    std::cout << "Matches found: " << songs_and_scores.size() << '\n';
 
   // no matches
-  if (songs_and_scores.empty() /* || variance < MAX_ALLOWED_VARIANCE */) {
+  if (songs_and_scores.empty()) {
     return std::nullopt;
   }
 

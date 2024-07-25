@@ -64,7 +64,6 @@
             python-pkgs.scipy
             python-pkgs.pandas
             python-pkgs.seaborn
-            # python-pkgs.ace_tools
           ]))
 
         ];

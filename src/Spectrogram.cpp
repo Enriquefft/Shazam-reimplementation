@@ -28,9 +28,7 @@ template <floating_point T> auto Spectrogram<T>::get_y() -> size_t {
   return sp_x > 0 ? m_spectrogram[0].size() : 0;
 }
 
-template <floating_point T>
-auto Spectrogram<T>::get_feature_count() -> size_t
-{
+template <floating_point T> auto Spectrogram<T>::get_feature_count() -> size_t {
   return m_features.size();
 }
 
@@ -102,7 +100,7 @@ template <floating_point T>
 Spectrogram<T>::Spectrogram(const Audio<T> &audio)
     : m_spectrogram({}), m_features({}) {
   configuration = Config(); // use default config
-  auto stft_matrix = stft(audio,configuration.FFT_WINDOW);
+  auto stft_matrix = stft(audio, configuration.FFT_WINDOW);
   m_spectrogram = abs(stft_matrix);
 
   for (size_t i = 0; i < m_spectrogram.size(); i++) {
@@ -113,10 +111,10 @@ Spectrogram<T>::Spectrogram(const Audio<T> &audio)
 }
 
 template <floating_point T>
-Spectrogram<T>::Spectrogram(const Audio<T> &audio, Config& cfg)
-    : m_spectrogram({}), m_features({}),configuration(cfg) {
-   // std::cout << "STFT with " << configuration.FFT_WINDOW << std::endl;
-  auto stft_matrix = stft(audio,configuration.FFT_WINDOW);
+Spectrogram<T>::Spectrogram(const Audio<T> &audio, Config &cfg)
+    : m_spectrogram({}), m_features({}), configuration(cfg) {
+  // std::cout << "STFT with " << configuration.FFT_WINDOW << std::endl;
+  auto stft_matrix = stft(audio, configuration.FFT_WINDOW);
   m_spectrogram = abs(stft_matrix);
   for (size_t i = 0; i < m_spectrogram.size(); i++) {
     for (size_t j = 0; j < m_spectrogram[0].size(); j++) {
@@ -176,7 +174,7 @@ Spectrogram<T>::Spectrogram(const std::string &csvname) {
 }
 
 template <floating_point T>
-auto Spectrogram<T>::get_spectrogram() const -> const matrix_t<T>& {
+auto Spectrogram<T>::get_spectrogram() const -> const matrix_t<T> & {
   return m_spectrogram;
 }
 
@@ -347,7 +345,8 @@ auto Spectrogram<T>::pad(const vector<T> &data,
 template <floating_point T>
 auto Spectrogram<T>::pad_center(const std::vector<T> &data,
                                 const size_t &target_size,
-                                const PADDING_MODE &padding_mode) -> std::vector<T> {
+                                const PADDING_MODE &padding_mode)
+    -> std::vector<T> {
   if (target_size <= data.size()) {
     return data;
   }
@@ -385,6 +384,10 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
                           const PADDING_MODE &padding_mode)
     -> matrix_t<std::complex<T>> {
 
+  std::cout << "Running STFT" << '\n';
+  std::cout << "audio size: " << audio.m_audiodata.size() << '\n';
+  std::cout << "audio sample rate: " << audio.m_sample_rate << '\n';
+  vector_info(audio.m_audiodata, "audio");
 
   auto effective_window_length = window_length.value_or(n_fft);
   auto effective_hop_length = hop_length.value_or(effective_window_length / 4);
@@ -405,7 +408,7 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
   auto expanded_fft_window = expand_to(fft_window, 2);
 
   if (n_fft > audiodata.size()) {
-    throw std::runtime_error("n_fft is to large for audio input");
+    std::cout << "n_fft is to large for audio input" << '\n';
   }
 
   // Set up the padding array to be empty, and we'll fix the target
@@ -446,7 +449,10 @@ auto Spectrogram<T>::stft(const Audio<T> &audio, const size_t &n_fft,
         (start_k - 1) * effective_hop_length - n_fft / 2 + n_fft + 1;
 
     if (audiodata_pre_idx > audiodata.size()) {
-      throw std::runtime_error("y_pre end idx has wrong size");
+      // throw std::runtime_error("y_pre end idx has wrong size");
+      std::cout << "y_pre end idx might have wrong size" << '\n';
+
+      audiodata_pre_idx = audiodata.size();
     }
     vector<T> sliced_audiodata(audiodata.begin(),
                                audiodata.begin() +

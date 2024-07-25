@@ -1,3 +1,0 @@
-song_count=100
-hash_count=378632
-total_time=326374
