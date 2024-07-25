@@ -232,7 +232,7 @@ auto search_song(
               << " Score: " << z_scores[i].first << '\n';
   }
 
-    std::cout << "Matches found: " << songs_and_scores.size() << '\n';
+  std::cout << "Matches found: " << songs_and_scores.size() << '\n';
 
   // no matches
   if (songs_and_scores.empty()) {
